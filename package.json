@@ -1,0 +1,34 @@
+{
+  "name": "wonlog",
+  "version": "0.0.1",
+  "description": "Simple analytic tool that streams local logs to web browser.",
+  "scripts": {
+    "build:all": "NODE_ENV=production webpack --config webpack.config.js && tsc -b tsconfig.server.json ",
+    "start": "NODE_ENV=development concurrently \"webpack --config webpack.config.js\" \"tsc -b tsconfig.server.json -w\" \"nodemon --exec ts-node dist/server_local/server.js\"",
+    "start1": "NODE_ENV=development concurrently \"webpack --config webpack.config.js\" \"nodemon --exec ts-node dist/server_local/server.js\"",
+    "serve": "NODE_ENV=production node dist/server_local/server.js",
+    "test": "NODE_ENV=test jest --forceExit --verbose --colors"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Devrama/wonlog.git"
+  },
+  "keywords": [
+    "log",
+    "logs",
+    "logging",
+    "logio",
+    "rtail",
+    "monitoring",
+    "realtime"
+  ],
+  "author": "WON JONG YOO",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Devrama/wonlog/issues"
+  },
+  "homepage": "https://github.com/Devrama/wonlog#readme",
+  "devDependencies": {
+    "lerna": "^3.19.0"
+  }
+}
