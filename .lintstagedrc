@@ -1,7 +1,6 @@
 {
   "*.{js,ts}": [
     "prettier --write",
-    "eslint --ext '.ts,.js'",
-    "git add"
+    "eslint --ext '.ts,.js'"
   ]
 }
