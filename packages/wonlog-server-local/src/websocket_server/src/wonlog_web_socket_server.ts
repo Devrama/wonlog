@@ -18,11 +18,21 @@ export class WonlogWebSocketServer extends WonWebSocketServer {
    * @override
    */
   protected onMessage(clientSocket: WebSocket, data: WebSocket.Data): void {
+    /*
     clientSocket.send(
-      `A message to client.. hello world from server - ${data}`
+      `Server received "${data}" from the client in the browser`
     );
-    setTimeout(() => {
-      clientSocket.send('getting better!');
-    }, 3000);
+    */
+
+    const INTERVAL = 2000;
+
+    setInterval(() => {
+      clientSocket.send(
+        JSON.stringify({
+          timestamp: new Date(),
+          message: `After ${INTERVAL} seconds, server sends "getting better!" to the client! The flex-grow property specifies how much the item will grow relative to the rest of the flexible items inside the same container. Note: If the element is not a flexible item, the flex-grow property has no effect. ${data}`,
+        })
+      );
+    }, INTERVAL);
   }
 }

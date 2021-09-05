@@ -1,25 +1,56 @@
-import React, { createContext, useState, useEffect } from 'react';
-const LogStreamContext = createContext('')
+import React, { createContext, useState, useEffect, Dispatch } from 'react';
+interface Log {
+  timestamp: Date
+  message: string
+}
+
+const LogStreamContext = createContext<Log[]>([])
 
 // Create WebSocket connection.
-const socket = new WebSocket('ws://192.168.5.3:8080');
+let socket: WebSocket
+let allLogs: Log[] = []
 
-const useLogStreamWebSocket = (): string => {
-  const [ logs, setLogs ] = useState('init');
+const useLogStreamWebSocket = (): Log[] => {
+  const [ logs, setLogs ] = useState<Log[]>([]);
 
-  useEffect(() => {
+  const connectWebSocket = (): void => {
+    if(socket && socket.readyState !== WebSocket.CLOSED) {
+      return
+    }
+
+    socket = new WebSocket('ws://localhost:5000');
     // Connection opened
     socket.addEventListener('open', function(event) {
-      console.log('open');
+      console.log('open', event);
       socket.send('Hello Server!');
     });
 
     // Listen for messages
     socket.addEventListener('message', function(event) {
-      console.log('message');
+      allLogs = [JSON.parse(event.data), ...allLogs]
+      console.log('message', event);
       // Message from server
-      setLogs(event.data);
+      setLogs([...allLogs]);
     });
+
+    // Error
+    socket.addEventListener('error', function(event) {
+      console.log('error', event);
+    });
+
+    // Close
+    socket.addEventListener('close', function(event) {
+      console.log('closed', event);
+      // Message from server
+      setTimeout(() => {
+        console.log('reconnecting..............');
+        connectWebSocket()
+      }, 3000)
+    });
+  }
+
+  useEffect(() => {
+    connectWebSocket()
   }, []); // Only on Mount
 
   return logs
@@ -27,7 +58,6 @@ const useLogStreamWebSocket = (): string => {
 
 const LogStreamProvider:React.FC = props => {
   const logs = useLogStreamWebSocket();
-  console.log('===========', logs);
   return (
     <LogStreamContext.Provider value={logs}>
       {props.children}

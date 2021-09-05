@@ -15,7 +15,7 @@ export class WonServerLocalApp implements WonApplication {
   public start(): void {
     const expressServer = new ExpressServer(
       '0.0.0.0',
-      Number(process.env.PORT) || 3000
+      Number(process.env.PORT) || 5000
     );
     expressServer.start();
 

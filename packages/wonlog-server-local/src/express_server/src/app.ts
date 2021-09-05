@@ -9,7 +9,7 @@ import errorHandler from 'errorhandler';
 const app = express();
 
 // Express configuration
-app.set('port', process.env.PORT || 3000);
+// app.set('port', process.env.PORT || 5000);
 app.use(compression());
 app.use(bodyParser.json());
 app.use(

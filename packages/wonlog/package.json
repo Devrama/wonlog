@@ -8,10 +8,6 @@
     "wonlog-server": "dist/server_local/server.js"
   },
   "scripts": {
-    "build:all": "NODE_ENV=production webpack --config webpack.config.js && tsc -b tsconfig.server.json ",
-    "start": "NODE_ENV=development concurrently \"webpack --config webpack.config.js\" \"tsc -b tsconfig.server.json -w\" \"nodemon dist/server_local/server.j\"",
-    "serve": "NODE_ENV=production node dist/server_local/server.js",
-    "test": "NODE_ENV=test jest --forceExit --verbose --colors"
   },
   "repository": {
     "type": "git",

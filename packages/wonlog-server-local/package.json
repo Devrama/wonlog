@@ -17,8 +17,8 @@
   "scripts": {
     "build": "NODE_ENV=production tsc",
     "serve": "NODE_ENV=production node dist/index.js",
-    "start": "NODE_ENV=development mkdir -p dist/express_server/public && cp -r src/express_server/public/* dist/express_server/public && concurrently \"tsc -w\" \"nodemon dist/index.js\"",
-    "start2": "ODE_ENV=development nodemon --exec ts-node --files src/index.ts",
+    "start": "NODE_ENV=development nodemon --exec ts-node --files src/index.ts",
+    "startServer": "NODE_ENV=development nodemon --exec ts-node --files src/index.ts",
     "test": "NODE_ENV=test jest --forceExit --verbose --colors"
   },
   "repository": {
@@ -48,12 +48,8 @@
     "@types/lusca": "1.7.1",
     "@types/ws": "7.4.7",
     "compression": "1.7.4",
-    "concurrently": "6.2.1",
     "errorhandler": "1.5.1",
-    "jest": "27.1.0",
-    "lusca": "1.7.0",
-    "nodemon": "2.0.12",
-    "ts-node": "10.2.1"
+    "lusca": "1.7.0"
   },
   "dependencies": {
     "express": "4.17.1",
