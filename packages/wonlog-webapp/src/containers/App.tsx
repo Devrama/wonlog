@@ -13,7 +13,7 @@ const App = () => {
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
           <p>
-            Wonlog, Edit <code>src/App.tsx</code> and save to reload.
+              {process.env.REACT_APP_WON_TEST_VAR}WWonlog!, Edit <code>src/App.tsx</code> and save to reload.
           </p>
           <a
             className="App-link"
