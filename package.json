@@ -29,6 +29,7 @@
   },
   "homepage": "https://github.com/Devrama/wonlog#readme",
   "devDependencies": {
+    "husky": "7.0.2",
     "lerna": "^3.19.0"
   }
 }

@@ -17,7 +17,7 @@ export class WonServerLocalApp implements WonApplication {
       '0.0.0.0',
       Number(process.env.PORT) || 3000
     );
-    expressServer.start();
+    expressServer.start()
 
     if (!expressServer.httpServer) {
       throw new Error('Cannot find httpServer'); // TODO
