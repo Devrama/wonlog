@@ -4,7 +4,7 @@ import { createStyles, Theme, withStyles, WithStyles } from '@material-ui/core/s
 import TableCell from '@material-ui/core/TableCell';
 import Paper from '@material-ui/core/Paper';
 import { AutoSizer, Column, Table, TableCellRenderer, TableHeaderProps } from 'react-virtualized';
-import { LogStreamContext } from '../../context/LogStreamContext'
+import { LogStreamContext, LogData } from '../../context/LogStreamContext'
 
 declare module '@material-ui/core/styles/withStyles' {
   // Augment the BaseCSSProperties so that we can control jss-rtl
@@ -64,7 +64,7 @@ interface MuiVirtualizedTableProps extends WithStyles<typeof styles> {
   headerHeight?: number;
   onRowClick?: () => void;
   rowCount: number;
-  rowGetter: (row: Row) => Log;
+  rowGetter: (row: Row) => LogData;
   rowHeight?: number;
 }
 
@@ -158,11 +158,6 @@ class MuiVirtualizedTable extends React.PureComponent<MuiVirtualizedTableProps> 
 
 const VirtualizedTable = withStyles(styles)(MuiVirtualizedTable);
 
-interface Log {
-  timestamp: Date
-  message: string
-}
-
 export default function ReactVirtualizedTable() {
   const logs = useContext(LogStreamContext);
   console.log('============count:', logs.length)
@@ -173,9 +168,14 @@ export default function ReactVirtualizedTable() {
         rowGetter={({ index }) => logs[index]}
         columns={[
           {
+            width: 100,
+            label: 'ID',
+            dataKey: '_logID',
+          },
+          {
             width: 250,
-            label: 'Timestamp',
-            dataKey: 'timestamp',
+            label: 'DateTime',
+            dataKey: '_datetime',
           },
           {
             width: 1800,

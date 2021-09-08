@@ -1,17 +1,28 @@
 import React, { createContext, useState, useEffect, Dispatch } from 'react';
-interface Log {
-  timestamp: Date
-  message: string
+
+interface OriginalLogData {
+  wonlogMetadata: {
+    logID: number
+    datetime: string
+    propertyNames: string[]
+  }
+  [key: string]: unknown
 }
 
-const LogStreamContext = createContext<Log[]>([])
+export interface LogData {
+  _logID: number
+  _datetime: string
+  [key: string]: unknown
+}
+
+const LogStreamContext = createContext<LogData[]>([])
 
 // Create WebSocket connection.
 let socket: WebSocket
-let allLogs: Log[] = []
+let allLogs: LogData[] = []
 
-const useLogStreamWebSocket = (): Log[] => {
-  const [ logs, setLogs ] = useState<Log[]>([]);
+const useLogStreamWebSocket = (): LogData[] => {
+  const [ logs, setLogs ] = useState<LogData[]>([]);
 
   const connectWebSocket = (): void => {
     if(socket && socket.readyState !== WebSocket.CLOSED) {
@@ -27,7 +38,13 @@ const useLogStreamWebSocket = (): Log[] => {
 
     // Listen for messages
     socket.addEventListener('message', function(event) {
-      allLogs = [JSON.parse(event.data), ...allLogs]
+      const { wonlogMetadata: { logID, datetime }, ...rest }: OriginalLogData = JSON.parse(event.data)
+      allLogs.unshift({
+        _logID: logID,
+        _datetime: datetime,
+        ...rest,
+      })
+
       console.log('message', event);
       // Message from server
       setLogs([...allLogs]);

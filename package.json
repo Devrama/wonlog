@@ -4,8 +4,7 @@
   "description": "Simple analytic tool that streams local logs to web browser.",
   "scripts": {
     "build:all": "NODE_ENV=production lerna build",
-    "start": "NODE_ENV=development lerna run start",
-    "startServer": "NODE_ENV=development lerna run startServer",
+    "start": "NODE_ENV=development lerna run --parallel  start",
     "serve": "NODE_ENV=production lerna run serve",
     "test": "NODE_ENV=test jest --forceExit --verbose --colors",
     "prepare": "husky install"

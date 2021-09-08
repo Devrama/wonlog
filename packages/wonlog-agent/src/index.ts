@@ -1,5 +1,3 @@
-import { WonlogUdpServer } from './src/wonlog_udp_server';
+import { StreamStdinToUDP } from './services/stream_stdin_to_udp';
 
-export {
-  WonlogUdpServer, // concrete class
-};
+export { StreamStdinToUDP };
