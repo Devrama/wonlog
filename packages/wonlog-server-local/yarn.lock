@@ -173,11 +173,6 @@ cookie@0.4.0:
   resolved "https://registry.yarnpkg.com/cookie/-/cookie-0.4.0.tgz#beb437e7022b3b6d49019d088665303ebe9c14ba"
   integrity sha512-+Hp8fLp57wnUSt0tY0tHEXh4voZRDnoIrZPqlo3DPiI4y9lwg/jqx+1Om94/W6ZaPDOUbnjOt/99w66zk+l1Xg==
 
-date-fns@2.23.0:
-  version "2.23.0"
-  resolved "https://registry.yarnpkg.com/date-fns/-/date-fns-2.23.0.tgz#4e886c941659af0cf7b30fafdd1eaa37e88788a9"
-  integrity sha512-5ycpauovVyAk0kXNZz6ZoB9AYMZB4DObse7P3BPWmyEjXNORTI8EJ6X0uaSAq4sCHzM1uajzrkr6HnsLQpxGXA==
-
 debug@2.6.9:
   version "2.6.9"
   resolved "https://registry.yarnpkg.com/debug/-/debug-2.6.9.tgz#5d128515df134ff327e90a4c93f4e077a536341f"

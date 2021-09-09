@@ -1,137 +1,83 @@
 import dgram from 'dgram';
 import split2 from 'split2';
-import * as chrono from 'chrono-node';
 import JSON5 from 'json5';
-import yargs from 'yargs'; // TODO: Replace this by commander
-import map from 'through2-map'; // TODO: consider to replace it by through2
-import stripAnsi from 'strip-ansi';
-import { nanoid } from 'nanoid'; // TODO: consider to replace it by 'chance'
-// import updateNotifier from 'update-notifier'
-// import pkg from '../../package.json'
+import { Command } from 'commander';
+import { nanoid } from 'nanoid';
+import { parseISO } from 'date-fns';
 
-/*!
- * inform the user of updates
- */
-/*
-updateNotifier({
-  packageName: pkg.name,
-  packageVersion: pkg.version
-}).notify()
-*/
+const program = new Command();
+program
+  .option('-h, --host [host]', 'Server host', '127.0.0.1')
+  .option('-p, --port [port]', 'Server port', '7081')
+  .option('-s, --stream-name [name]', 'Stream name')
+  .option('-m, --mute [type]', 'Disable printing logs', false);
 
-/*!
- * parsing argv
- */
-const argv = yargs
-  .usage('Usage: cmd | rtail [OPTIONS]')
-  .example('server | rtail > server.log', 'localhost + file')
-  .example('server | rtail --id api.domain.com', 'Name the log stream')
-  .example('server | rtail --host example.com', 'Sends to example.com')
-  .example('server | rtail --port 43567', 'Uses custom port')
-  .example('server | rtail --mute', 'No stdout')
-  .example('server | rtail --no-tty', 'Strips ansi colors')
-  .example('server | rtail --no-date-parse', 'Disable date parsing/stripping')
-  .option('host', {
-    alias: 'h',
-    type: 'string',
-    default: '127.0.0.1',
-    describe: 'The server host',
-  })
-  .option('port', {
-    alias: 'p',
-    type: 'string',
-    default: 9999,
-    describe: 'The server port',
-  })
-  .option('id', {
-    alias: 'name',
-    type: 'string',
-    default: nanoid,
-    describe: 'The log stream id',
-  })
-  .option('mute', {
-    alias: 'm',
-    type: 'boolean',
-    describe: 'Do not pipe stdin with stdout',
-  })
-  .option('tty', {
-    type: 'boolean',
-    default: true,
-    describe: 'Keeps ansi colors',
-  })
-  .option('parse-date', {
-    type: 'boolean',
-    default: true,
-    describe: 'Looks for dates to use as timestamp',
-  })
-  .help('help')
-  //.version(pkg.version, 'version')
-  .alias('version', 'v')
-  .strict().argv;
-/*!
- * setup pipes
- */
-if (!argv.mute) {
-  if (!process.stdout.isTTY || !argv.tty) {
-    process.stdin
-      .pipe(
-        map(function (chunk) {
-          return stripAnsi(chunk.toString('utf8'));
-        })
-      )
-      .pipe(process.stdout);
-  } else {
-    process.stdin.pipe(process.stdout);
-  }
+program.parse(process.argv);
+
+const _options = program.opts();
+
+if (!_options.mute) {
+  process.stdin.pipe(process.stdout);
 }
-/*!
- * initialize socket
- */
-let isClosed = false;
-let isSending = 0;
-const socket = dgram.createSocket('udp4');
-const baseMessage = { id: argv.id, timestamp: Date.now(), content: '' };
-socket.bind(function () {
-  socket.setBroadcast(true);
+
+let _isStdinClosed = false;
+let _countMessagesInQueue = 0;
+const _udpClient = dgram.createSocket('udp4');
+_udpClient.bind(function () {
+  _udpClient.setBroadcast(true);
 });
-/*!
- * broadcast lines to browser
- */
-process.stdin.pipe(split2()).on('data', function (line) {
-  let timestamp: null | chrono.ParsedResult = null;
+
+process.stdin.pipe(split2()).on('data', function (textLog) {
+  const hydratedLog: {
+    streamID: string;
+    logXRefID: string;
+    timestamp: number;
+    data: Record<string, unknown>;
+  } = {
+    streamID: _options.streamName as unknown as string,
+    logXRefID: nanoid(),
+    timestamp: Date.now(),
+    data: {},
+  };
+  let isJson = true;
+  let parsedLog: Record<string, unknown> | undefined = undefined;
+
   try {
-    // try to JSON parse
-    line = JSON5.parse(line);
+    parsedLog = JSON5.parse(textLog);
   } catch (err) {
-    // look for timestamps if not an object
-    timestamp = argv.parseDate ? chrono.parse(line)[0] : null;
+    isJson = false;
   }
-  if (timestamp) {
-    // escape for regexp and remove from line
-    // timestamp.text = timestamp.text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')
-    line = line.replace(new RegExp(' *[^ ]?' + timestamp.text + '[^ ]? *'), '');
-    // use timestamp as line timestamp
-    baseMessage.timestamp = timestamp.start.date().getTime();
-  } else {
-    baseMessage.timestamp = Date.now();
+  if (isJson && typeof parsedLog?.timestamp === 'number') {
+    hydratedLog.timestamp = parsedLog.timestamp;
+  } else if (isJson && typeof parsedLog?.timestamp === 'string') {
+    const parsedTime = parseISO(parsedLog.timestamp).getTime();
+    hydratedLog.timestamp = isNaN(parsedTime) ? Date.now() : parsedTime;
   }
-  // update default message
-  baseMessage.content = line;
-  // prepare binary message
-  const buffer = Buffer.from(JSON.stringify(baseMessage));
-  // set semaphore
-  isSending++;
-  socket.send(buffer, 0, buffer.length, argv.port, argv.host, function () {
-    isSending--;
-    if (isClosed && !isSending) socket.close();
-  });
+
+  hydratedLog.data = parsedLog ?? textLog;
+  const buffer = Buffer.from(JSON.stringify(hydratedLog));
+
+  _countMessagesInQueue++;
+  _udpClient.send(
+    buffer,
+    0,
+    buffer.length,
+    _options.port,
+    _options.host,
+    function () {
+      _countMessagesInQueue--;
+      if (_isStdinClosed && _countMessagesInQueue === 0) {
+        _udpClient.close();
+      }
+    }
+  );
 });
-/*!
- * drain pipe and exit
- */
+
 process.stdin.on('end', function () {
-  isClosed = true;
-  if (!isSending) socket.close();
+  _isStdinClosed = true;
+  if (!_countMessagesInQueue) {
+    _udpClient.close();
+  }
 });
 
 export class StreamStdinToUDP {}

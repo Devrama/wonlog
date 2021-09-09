@@ -14,8 +14,9 @@ import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
-import InboxIcon from '@material-ui/icons/MoveToInbox';
-import MailIcon from '@material-ui/icons/Mail';
+import InfoIcon from '@material-ui/icons/Info';
+import SettingsIcon from '@material-ui/icons/Settings';
+import StorageIcon from '@material-ui/icons/Storage';
 
 const drawerWidth = 240;
 
@@ -110,8 +111,8 @@ const LeftMenu:React.FC = () => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap>
-            Mini variant drawer
+          <Typography variant="h6" display="inline" noWrap>
+            WonLog - <Typography variant="subtitle1" display="inline" noWrap>Stream your log to web browsers.</Typography>
           </Typography>
         </Toolbar>
       </AppBar>
@@ -135,21 +136,25 @@ const LeftMenu:React.FC = () => {
         </div>
         <Divider />
         <List>
-          {['Inbox', 'Starred', 'Send email', 'Drafts'].map((text, index) => (
-            <ListItem button key={text}>
-              <ListItemIcon>{index % 2 === 0 ? <InboxIcon /> : <MailIcon />}</ListItemIcon>
-              <ListItemText primary={text} />
-            </ListItem>
-          ))}
+          <ListItem button>
+            <ListItemIcon><InfoIcon /></ListItemIcon>
+            <ListItemText primary="About" />
+          </ListItem>
+          <ListItem button>
+            <ListItemIcon><SettingsIcon /></ListItemIcon>
+            <ListItemText primary="Settings" />
+          </ListItem>
         </List>
         <Divider />
         <List>
-          {['All mail', 'Trash', 'Spam'].map((text, index) => (
-            <ListItem button key={text}>
-              <ListItemIcon>{index % 2 === 0 ? <InboxIcon /> : <MailIcon />}</ListItemIcon>
-              <ListItemText primary={text} />
-            </ListItem>
-          ))}
+          <ListItem button>
+            <ListItemIcon><StorageIcon /></ListItemIcon>
+            <ListItemText primary="Log1" />
+          </ListItem>
+          <ListItem button>
+            <ListItemIcon><StorageIcon /></ListItemIcon>
+            <ListItemText primary="Log2" />
+          </ListItem>
         </List>
       </Drawer>
     </>

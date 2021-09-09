@@ -1,18 +1,25 @@
-import WebSocket from 'ws';
-import { format } from 'date-fns';
 import http from 'http';
 import { WonWebSocketServer } from '../../_won_modules/won-node-framework';
 
-interface LogData {
+interface IncomingLog {
+  streamID: string;
+  logXRefID: string;
+  timestamp: number;
+  data: Record<string, unknown>;
+}
+
+interface OutgoingLog {
   wonlogMetadata: {
-    logID: number;
-    datetime: string;
+    seqID: number;
+    streamID: string;
+    logXRefID: string;
+    timestamp: number;
     propertyNames: string[];
   };
   [key: string]: unknown;
 }
 
-let _logID = 0;
+const streamSeqID = new Map<string, number>();
 
 export class WonlogWebSocketServer extends WonWebSocketServer {
   constructor(httpServer: http.Server) {
@@ -22,19 +29,25 @@ export class WonlogWebSocketServer extends WonWebSocketServer {
   /**
    * @override
    */
-  protected onBroadcast(clientSocket: WebSocket, data: Buffer): void {
-    // clientSocket.send(`broadcasting.. hello world from udp - ${data}`);
-    const logData: { content: LogData } = JSON.parse(data.toString());
-    clientSocket.send(
-      JSON.stringify({
-        ...logData.content,
-        wonlogMetadata: {
-          logID: ++_logID,
-          datetime: format(new Date(), 'yyyy/MM/dd HH:mm:ss'),
-          propertyNames: Object.keys(logData.content),
-        },
-      })
+  protected onBroadcast(buffer: Buffer): string {
+    const { streamID, logXRefID, timestamp, data }: IncomingLog = JSON.parse(
+      buffer.toString()
     );
+    if (streamSeqID.has(streamID)) {
+      streamSeqID.set(streamID, Number(streamSeqID.get(streamID)) + 1);
+    } else {
+      streamSeqID.set(streamID, 1);
+    }
+    return JSON.stringify({
+      ...data,
+      wonlogMetadata: {
+        seqID: streamSeqID.get(streamID),
+        streamID,
+        logXRefID,
+        timestamp,
+        propertyNames: Object.keys(data),
+      },
+    } as OutgoingLog);
   }
 
   /**

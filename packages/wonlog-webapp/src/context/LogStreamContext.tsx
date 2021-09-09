@@ -1,28 +1,37 @@
 import React, { createContext, useState, useEffect, Dispatch } from 'react';
 
-interface OriginalLogData {
+interface IncomingLog {
   wonlogMetadata: {
-    logID: number
-    datetime: string
-    propertyNames: string[]
-  }
-  [key: string]: unknown
+    seqID: number
+    streamID: string
+    logXRefID: string
+    timestamp: number
+    propertyNames: string[];
+  };
+  [key: string]: unknown;
 }
 
 export interface LogData {
-  _logID: number
-  _datetime: string
+  _seqID: number
+  _streamID: string
+  _logXRefID: string
+  _timestamp: number
   [key: string]: unknown
 }
 
-const LogStreamContext = createContext<LogData[]>([])
+interface CurrentStream {
+  streamID?: string
+  logs: LogData[]
+}
+
+const LogStreamContext = createContext<CurrentStream>({ logs: []})
 
 // Create WebSocket connection.
 let socket: WebSocket
-let allLogs: LogData[] = []
+const streamLog = new Map<string, LogData[]>()
 
-const useLogStreamWebSocket = (): LogData[] => {
-  const [ logs, setLogs ] = useState<LogData[]>([]);
+const useLogStreamWebSocket = (): CurrentStream => {
+  const [ logs, setLogs ] = useState<CurrentStream>({ logs: [] });
 
   const connectWebSocket = (): void => {
     if(socket && socket.readyState !== WebSocket.CLOSED) {
@@ -38,16 +47,24 @@ const useLogStreamWebSocket = (): LogData[] => {
 
     // Listen for messages
     socket.addEventListener('message', function(event) {
-      const { wonlogMetadata: { logID, datetime }, ...rest }: OriginalLogData = JSON.parse(event.data)
-      allLogs.unshift({
-        _logID: logID,
-        _datetime: datetime,
+      const { wonlogMetadata: { seqID, streamID, logXRefID, timestamp }, ...rest }: IncomingLog = JSON.parse(event.data)
+
+      let logs: LogData[] = []
+      if(streamLog.has(streamID)) {
+        logs = streamLog.get(streamID)!
+      }
+
+      logs.unshift({
+          _seqID: seqID,
+        _streamID: streamID,
+        _logXRefID: logXRefID,
+        _timestamp: timestamp,
         ...rest,
       })
 
-      console.log('message', event);
-      // Message from server
-      setLogs([...allLogs]);
+      streamLog.set(streamID, logs)
+
+      setLogs({ streamID, logs });
     });
 
     // Error

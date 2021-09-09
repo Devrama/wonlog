@@ -159,8 +159,7 @@ class MuiVirtualizedTable extends React.PureComponent<MuiVirtualizedTableProps> 
 const VirtualizedTable = withStyles(styles)(MuiVirtualizedTable);
 
 export default function ReactVirtualizedTable() {
-  const logs = useContext(LogStreamContext);
-  console.log('============count:', logs.length)
+  const { logs } = useContext(LogStreamContext);
   return (
     <Paper style={{ height: '100%', width: '100%' }}>
       <VirtualizedTable
@@ -168,17 +167,22 @@ export default function ReactVirtualizedTable() {
         rowGetter={({ index }) => logs[index]}
         columns={[
           {
-            width: 100,
+            width: 200,
+            label: 'streamID',
+            dataKey: '_streamID',
+          },
+          {
+            width: 50,
             label: 'ID',
-            dataKey: '_logID',
+            dataKey: '_seqID',
           },
           {
             width: 250,
             label: 'DateTime',
-            dataKey: '_datetime',
+            dataKey: '_timestamp',
           },
           {
-            width: 1800,
+            width: 800,
             label: 'Message',
             dataKey: 'message',
             numeric: false,

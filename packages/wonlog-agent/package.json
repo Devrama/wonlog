@@ -39,17 +39,12 @@
   },
   "homepage": "https://github.com/Devrama/wonlog#readme",
   "devDependencies": {
-    "@types/split2": "3.2.1",
-    "@types/through2-map": "3.0.1",
-    "@types/update-notifier": "5.1.0"
+    "@types/split2": "3.2.1"
   },
   "dependencies": {
-    "chrono-node": "2.3.1",
+    "commander": "8.1.0",
     "json5": "2.2.0",
     "nanoid": "3.1.25",
-    "split2": "3.2.2",
-    "through2-map": "3.0.0",
-    "update-notifier": "5.1.0",
-    "yargs": "17.1.1"
+    "split2": "3.2.2"
   }
 }
