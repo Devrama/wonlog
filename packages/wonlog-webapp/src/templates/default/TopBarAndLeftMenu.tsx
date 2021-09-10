@@ -83,11 +83,11 @@ const LeftMenu:React.FC = () => {
   const theme = useTheme();
   const [open, setOpen] = React.useState(true);
 
-  const handleDrawerOpen = () => {
+  const handleDrawerOpen = ():void => {
     setOpen(true);
   };
 
-  const handleDrawerClose = () => {
+  const handleDrawerClose = ():void => {
     setOpen(false);
   };
 
@@ -111,9 +111,7 @@ const LeftMenu:React.FC = () => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" display="inline" noWrap>
-            WonLog - <Typography variant="subtitle1" display="inline" noWrap>Stream your log to web browsers.</Typography>
-          </Typography>
+          <Typography variant="h6" display="inline" noWrap>WonLog - </Typography><Typography variant="subtitle1" display="inline" noWrap>Stream your log to web browsers.</Typography>
         </Toolbar>
       </AppBar>
       <Drawer
@@ -159,6 +157,6 @@ const LeftMenu:React.FC = () => {
       </Drawer>
     </>
   );
-}
+};
 
 export default LeftMenu;

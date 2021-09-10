@@ -1,5 +1,5 @@
 {
-  "name": "wonlog-agent",
+  "name": "wonlog-server",
   "version": "0.0.2-alpha.17+0a0a4b6",
   "description": "Simple analytic tool that streams local logs to web browser.",
   "main": "dist/index.js",
@@ -7,14 +7,11 @@
   "files": [
     "dist"
   ],
-  "bin": {
-    "wonlog-agent": "./dist/bin/agent.js"
-  },
   "scripts": {
     "clean": "rimraf dist tsconfig.tsbuildinfo",
-    "build": "NODE_ENV=production tsc && chmod a+x dist/bin/*.js",
-    "serve": "NODE_ENV=production node dist/bin/agent.js",
-    "start": "NODE_ENV=development ts-node --files src/bin/agent.ts",
+    "build": "NODE_ENV=production tsc",
+    "serve": "NODE_ENV=production node dist/index.js",
+    "start": "NODE_ENV=development nodemon --exec ts-node --files src/index.ts",
     "test": "NODE_ENV=test jest --forceExit --verbose --colors"
   },
   "repository": {
@@ -37,17 +34,22 @@
   },
   "homepage": "https://github.com/Devrama/wonlog#readme",
   "devDependencies": {
-    "@types/split2": "3.2.1"
+    "@types/body-parser": "1.19.1",
+    "@types/compression": "1.7.1",
+    "@types/errorhandler": "1.5.0",
+    "@types/express": "4.17.13",
+    "@types/lusca": "1.7.1",
+    "@types/ws": "7.4.7"
   },
   "dependencies": {
-    "commander": "8.1.0",
-    "date-fns": "2.23.0",
-    "json5": "2.2.0",
-    "nanoid": "3.1.25",
-    "split2": "3.2.2"
+    "compression": "1.7.4",
+    "errorhandler": "1.5.1",
+    "express": "4.17.1",
+    "lusca": "1.7.0",
+    "ws": "8.2.1"
   },
   "peerDependencies": {
-    "wonlog-server": "0.0.1"
+    "wonlog-agent": "0.0.1"
   },
   "gitHead": "0a0a4b6b794b3ce1114169629b811fd706e1059e"
 }

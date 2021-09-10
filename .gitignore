@@ -27,8 +27,13 @@ node_modules/
 # next.js build output
 .next
 
+# typescirpt
+*.tsbuildinfo
+
 # project
 dist
+dist-webapp
 
 # vim
 *.swp
+*.swo

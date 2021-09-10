@@ -1,5 +1,9 @@
 {
   "compilerOptions": {
+    "composite": false,
+    "target": "es6",
+    "rootDir": "packages",
+    "outDir": "./dist",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
@@ -9,6 +13,12 @@
     "noImplicitAny": true,
     "sourceMap": true,
     "experimentalDecorators": true,
-    "emitDecoratorMetadata": true
-  }
+    "emitDecoratorMetadata": true,
+    "skipLibCheck": true
+  },
+  "exclude": [
+    "node_modules",
+    "packages/**/node_modules",
+    "packages/wonlog-webapp"
+  ]
 }

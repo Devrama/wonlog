@@ -1,4 +1,3 @@
 dist
-build
 **/*.d.ts
 src/types/

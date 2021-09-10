@@ -1,8 +1,8 @@
 import React from 'react';
-import { makeStyles, useTheme } from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/core/styles';
 import ContentArea from './ContentArea';
 import TopBarAndLeftMenu from './TopBarAndLeftMenu';
-import { LogStreamProvider } from '../../context/LogStreamContext'
+import { LogStreamProvider } from '../../context/LogStreamContext';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -27,16 +27,6 @@ const useStyles = makeStyles((theme) => ({
 
 const DefaultTemplate:React.FC = () => {
   const classes = useStyles();
-  const theme = useTheme();
-  const [open, setOpen] = React.useState(false);
-
-  const handleDrawerOpen = () => {
-    setOpen(true);
-  };
-
-  const handleDrawerClose = () => {
-    setOpen(false);
-  };
 
   return (
     <div className={classes.root}>
@@ -49,6 +39,6 @@ const DefaultTemplate:React.FC = () => {
       </div>
     </div>
   );
-}
+};
 
 export default DefaultTemplate;

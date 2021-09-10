@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, Dispatch } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
 
 interface IncomingLog {
   wonlogMetadata: {
@@ -24,18 +24,18 @@ interface CurrentStream {
   logs: LogData[]
 }
 
-const LogStreamContext = createContext<CurrentStream>({ logs: []})
+const LogStreamContext = createContext<CurrentStream>({ logs: []});
 
 // Create WebSocket connection.
-let socket: WebSocket
-const streamLog = new Map<string, LogData[]>()
+let socket: WebSocket;
+const streamLog = new Map<string, LogData[]>();
 
 const useLogStreamWebSocket = (): CurrentStream => {
   const [ logs, setLogs ] = useState<CurrentStream>({ logs: [] });
 
   const connectWebSocket = (): void => {
     if(socket && socket.readyState !== WebSocket.CLOSED) {
-      return
+      return;
     }
 
     socket = new WebSocket('ws://localhost:5000');
@@ -47,11 +47,11 @@ const useLogStreamWebSocket = (): CurrentStream => {
 
     // Listen for messages
     socket.addEventListener('message', function(event) {
-      const { wonlogMetadata: { seqID, streamID, logXRefID, timestamp }, ...rest }: IncomingLog = JSON.parse(event.data)
+      const { wonlogMetadata: { seqID, streamID, logXRefID, timestamp }, ...rest }: IncomingLog = JSON.parse(event.data);
 
-      let logs: LogData[] = []
+      let logs: LogData[] = [];
       if(streamLog.has(streamID)) {
-        logs = streamLog.get(streamID)!
+        logs = streamLog.get(streamID) ?? [];
       }
 
       logs.unshift({
@@ -60,9 +60,9 @@ const useLogStreamWebSocket = (): CurrentStream => {
         _logXRefID: logXRefID,
         _timestamp: timestamp,
         ...rest,
-      })
+      });
 
-      streamLog.set(streamID, logs)
+      streamLog.set(streamID, logs);
 
       setLogs({ streamID, logs });
     });
@@ -78,17 +78,17 @@ const useLogStreamWebSocket = (): CurrentStream => {
       // Message from server
       setTimeout(() => {
         console.log('reconnecting..............');
-        connectWebSocket()
-      }, 3000)
+        connectWebSocket();
+      }, 3000);
     });
-  }
+  };
 
   useEffect(() => {
-    connectWebSocket()
+    connectWebSocket();
   }, []); // Only on Mount
 
-  return logs
-}
+  return logs;
+};
 
 const LogStreamProvider:React.FC = props => {
   const logs = useLogStreamWebSocket();
@@ -105,4 +105,4 @@ export {
   LogStreamContext,
   LogStreamProvider,
   LogStreamConsumer,
-}
+};

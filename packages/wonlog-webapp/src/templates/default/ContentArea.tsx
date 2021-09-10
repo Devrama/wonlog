@@ -1,10 +1,10 @@
-import React, { useContext } from 'react';
+import React, { useContext, ReactElement } from 'react';
 import clsx from 'clsx';
-import { createStyles, Theme, withStyles, WithStyles } from '@material-ui/core/styles';
+import { createStyles, Theme, withStyles, WithStyles, StyleRules } from '@material-ui/core/styles';
 import TableCell from '@material-ui/core/TableCell';
 import Paper from '@material-ui/core/Paper';
 import { AutoSizer, Column, Table, TableCellRenderer, TableHeaderProps } from 'react-virtualized';
-import { LogStreamContext, LogData } from '../../context/LogStreamContext'
+import { LogStreamContext, LogData } from '../../context/LogStreamContext';
 
 declare module '@material-ui/core/styles/withStyles' {
   // Augment the BaseCSSProperties so that we can control jss-rtl
@@ -16,7 +16,7 @@ declare module '@material-ui/core/styles/withStyles' {
   }
 }
 
-const styles = (theme: Theme) =>
+const styles = (theme: Theme): StyleRules =>
   createStyles({
     flexContainer: {
       display: 'flex',
@@ -74,7 +74,7 @@ class MuiVirtualizedTable extends React.PureComponent<MuiVirtualizedTableProps> 
     rowHeight: 48,
   };
 
-  getRowClassName = ({ index }: Row) => {
+  getRowClassName = ({ index }: Row): string => {
     const { classes, onRowClick } = this.props;
 
     return clsx(classes.tableRow, classes.flexContainer, {
@@ -99,7 +99,7 @@ class MuiVirtualizedTable extends React.PureComponent<MuiVirtualizedTableProps> 
     );
   };
 
-  headerRenderer = ({ label, columnIndex }: TableHeaderProps & { columnIndex: number }) => {
+  headerRenderer = ({ label, columnIndex }: TableHeaderProps & { columnIndex: number }): ReactElement => {
     const { headerHeight, columns, classes } = this.props;
 
     return (
@@ -115,19 +115,19 @@ class MuiVirtualizedTable extends React.PureComponent<MuiVirtualizedTableProps> 
     );
   };
 
-  render() {
+  render(): React.ReactChild {
     const { classes, columns, rowHeight, headerHeight, ...tableProps } = this.props;
     return (
       <AutoSizer>
-        {({ height, width }) => (
+        {({ height, width }): ReactElement => (
           <Table
             height={height}
             width={width}
-            rowHeight={rowHeight!}
+            rowHeight={Number(rowHeight)}
             gridStyle={{
               direction: 'inherit',
             }}
-            headerHeight={headerHeight!}
+            headerHeight={Number(headerHeight)}
             className={classes.table}
             {...tableProps}
             rowClassName={this.getRowClassName}
@@ -136,7 +136,7 @@ class MuiVirtualizedTable extends React.PureComponent<MuiVirtualizedTableProps> 
               return (
                 <Column
                   key={dataKey}
-                  headerRenderer={(headerProps) =>
+                  headerRenderer={(headerProps): ReactElement =>
                     this.headerRenderer({
                       ...headerProps,
                       columnIndex: index,
@@ -158,13 +158,13 @@ class MuiVirtualizedTable extends React.PureComponent<MuiVirtualizedTableProps> 
 
 const VirtualizedTable = withStyles(styles)(MuiVirtualizedTable);
 
-export default function ReactVirtualizedTable() {
+export default function ReactVirtualizedTable(): ReactElement {
   const { logs } = useContext(LogStreamContext);
   return (
     <Paper style={{ height: '100%', width: '100%' }}>
       <VirtualizedTable
         rowCount={logs.length}
-        rowGetter={({ index }) => logs[index]}
+        rowGetter={({ index }): LogData => logs[index]}
         columns={[
           {
             width: 200,

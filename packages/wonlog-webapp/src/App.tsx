@@ -2,10 +2,9 @@ import React from 'react';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { createTheme, ThemeProvider } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
-import logo from '../resources/images/logo.svg';
 import DefaultTemplate from './templates/default';
 
-const App = () => {
+const App = (): React.ReactElement  => {
   const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
 
   const theme = React.useMemo(
@@ -24,6 +23,6 @@ const App = () => {
       <DefaultTemplate />
     </ThemeProvider>
   );
-}
+};
 
 export default App;

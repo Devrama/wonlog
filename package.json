@@ -2,10 +2,21 @@
   "name": "wonlog",
   "version": "0.0.1",
   "description": "Simple analytic tool that streams local logs to web browser.",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
-    "build:all": "NODE_ENV=production lerna build",
-    "start": "NODE_ENV=development lerna run --parallel  start",
-    "serve": "NODE_ENV=production lerna run serve",
+    "tsc": "tsc",
+    "lint": "eslint --ext .js,.ts --color .",
+    "lint:fix": "eslint --ext .js,.ts --color --fix .",
+    "clean": "lerna run clean",
+    "build": "lerna run --scope wonlog-webapp build && lerna run --scope wonlog-agent --scope wonlog-server --scope wonlog build",
+    "start:agent": "NODE_ENV=development ts-node --files packages/wonlog-agent/bin/agent.ts",
+    "start:server": "lerna run --stream --scope wonlog-server start",
+    "start:webapp": "lerna run --stream --scope wonlog-webapp start",
+    "start:wonlog:server": "lerna run --stream --scope wonlog start:server",
+    "start:wonlog:agent": "NODE_ENV=development ts-node --files packages/wonlog/src/bin/wonlog-agent",
     "test": "NODE_ENV=test jest --forceExit --verbose --colors",
     "prepare": "husky install"
   },
@@ -23,7 +34,6 @@
     "realtime"
   ],
   "author": "WON JONG YOO",
-  "license": "MIT",
   "bugs": {
     "url": "https://github.com/Devrama/wonlog/issues"
   },
@@ -40,10 +50,9 @@
     "lint-staged": "11.1.2",
     "nodemon": "2.0.12",
     "prettier": "2.3.2",
+    "rimraf": "3.0.2",
     "ts-node": "10.2.1",
     "typescript": "4.4.2"
   },
-  "dependencies": {
-    "date-fns": "2.23.0"
-  }
+  "dependencies": {}
 }

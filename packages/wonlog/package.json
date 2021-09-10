@@ -1,13 +1,19 @@
 {
   "name": "wonlog",
-  "version": "0.0.1",
+  "version": "0.0.2-alpha.17+0a0a4b6",
   "description": "Simple analytic tool that streams local logs to web browser.",
-  "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
   "bin": {
-    "wonlog-agent": "wonlog-agent",
-    "wonlog-server": "dist/server_local/server.js"
+    "wonlog-agent": "dist/wonlog/bin/wonlog-agent.js",
+    "wonlog-server": "dist/wonlog/bin/wonlog-server.js"
   },
   "scripts": {
+    "clean": "rimraf dist",
+    "build": "NODE_ENV=production tsc && chmod a+x dist/wonlog/bin/*.js",
+    "start:agent": "NODE_ENV=development ts-node --files src/bin/wonlog-agent.ts",
+    "start:server": "NODE_ENV=development ts-node --files src/bin/wonlog-server.ts"
   },
   "repository": {
     "type": "git",
@@ -28,8 +34,9 @@
     "url": "https://github.com/Devrama/wonlog/issues"
   },
   "homepage": "https://github.com/Devrama/wonlog#readme",
-  "devDependencies": {
-  },
   "dependencies": {
-  }
+    "wonlog-agent": "^0.0.2-alpha.17+0a0a4b6",
+    "wonlog-server": "^0.0.2-alpha.17+0a0a4b6"
+  },
+  "gitHead": "0a0a4b6b794b3ce1114169629b811fd706e1059e"
 }

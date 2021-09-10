@@ -7,7 +7,7 @@
     "module": "commonjs",
     "target": "es6",
     "rootDir": "src",
-    "outDir": "dist",
+    "outDir": "dist/wonlog",
     "baseUrl": ".",
     "paths": {
       "*": [
@@ -20,4 +20,5 @@
     "src"
   ]
 }
+
 
