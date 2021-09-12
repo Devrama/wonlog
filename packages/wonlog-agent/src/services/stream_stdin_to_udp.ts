@@ -4,6 +4,7 @@ import JSON5 from 'json5';
 import { Command } from 'commander';
 import { nanoid } from 'nanoid';
 import { parseISO } from 'date-fns';
+import { AgentLog } from '../types/wonlog_shared';
 
 const program = new Command();
 program
@@ -28,13 +29,8 @@ _udpClient.bind(function () {
 });
 
 process.stdin.pipe(split2()).on('data', function (textLog) {
-  const hydratedLog: {
-    streamID: string;
-    logXRefID: string;
-    timestamp: number;
-    data: Record<string, unknown>;
-  } = {
-    streamID: _options.streamName as unknown as string,
+  const hydratedLog: AgentLog = {
+    streamID: _options.streamName ?? nanoid(),
     logXRefID: nanoid(),
     timestamp: Date.now(),
     data: {},

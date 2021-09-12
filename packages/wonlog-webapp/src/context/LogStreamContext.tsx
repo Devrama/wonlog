@@ -1,15 +1,7 @@
 import React, { createContext, useState, useEffect } from 'react';
+import { HydratedLog } from '../types/wonlog_shared';
 
-interface IncomingLog {
-  wonlogMetadata: {
-    seqID: number
-    streamID: string
-    logXRefID: string
-    timestamp: number
-    propertyNames: string[];
-  };
-  [key: string]: unknown;
-}
+type IncomingLog = HydratedLog;
 
 export interface LogData {
   _seqID: number

@@ -1,23 +1,9 @@
 import http from 'http';
 import { WonWebSocketServer } from '../../_won_modules/won-node-framework';
+import { AgentLog, HydratedLog } from '../../types/wonlog_shared';
 
-interface IncomingLog {
-  streamID: string;
-  logXRefID: string;
-  timestamp: number;
-  data: Record<string, unknown>;
-}
-
-interface OutgoingLog {
-  wonlogMetadata: {
-    seqID: number;
-    streamID: string;
-    logXRefID: string;
-    timestamp: number;
-    propertyNames: string[];
-  };
-  [key: string]: unknown;
-}
+type IncomingLog = AgentLog;
+type OutgoingLog = HydratedLog;
 
 const streamSeqID = new Map<string, number>();
 

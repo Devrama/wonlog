@@ -47,7 +47,7 @@
     "split2": "3.2.2"
   },
   "peerDependencies": {
-    "wonlog-server": "0.0.1"
+    "wonlog-server": "^0.0.1"
   },
   "gitHead": "0a0a4b6b794b3ce1114169629b811fd706e1059e"
 }

@@ -43,6 +43,6 @@
     "serve": "12.0.0"
   },
   "peerDependencies": {
-    "wonlog-server": "0.0.1"
+    "wonlog-server": "^0.0.1"
   }
 }
