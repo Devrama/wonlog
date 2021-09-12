@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { HydratedLog } from '../types/wonlog_shared';
+import { useGlobalConfig, GlobalConfigActionType } from './GlobalConfigContext';
 
 type IncomingLog = HydratedLog;
 
@@ -20,12 +21,18 @@ const LogStreamContext = createContext<CurrentStream>({ logs: []});
 
 // Create WebSocket connection.
 let socket: WebSocket;
-const streamLog = new Map<string, LogData[]>();
+const streamLog = new Map<string, { isContextUpdated: boolean, logs: LogData[] }>();
+let intervalID: NodeJS.Timeout | null = null;
+let currentStreamID: string | undefined;
 
 const useLogStreamWebSocket = (): CurrentStream => {
-  const [ logs, setLogs ] = useState<CurrentStream>({ logs: [] });
+  const [ currentLogs, setCurrentLogs ] = useState<CurrentStream>({ logs: [] });
+  const { globalConfig, setGlobalConfig } = useGlobalConfig();
+  currentStreamID = globalConfig.currentStreamID;
 
   const connectWebSocket = (): void => {
+    let hasLogsToRender = false;
+
     if(socket && socket.readyState !== WebSocket.CLOSED) {
       return;
     }
@@ -39,11 +46,23 @@ const useLogStreamWebSocket = (): CurrentStream => {
 
     // Listen for messages
     socket.addEventListener('message', function(event) {
-      const { wonlogMetadata: { seqID, streamID, logXRefID, timestamp }, ...rest }: IncomingLog = JSON.parse(event.data);
+      const { wonlogMetadata: { seqID, streamID, logXRefID, timestamp, propertyNames }, ...rest }: IncomingLog = JSON.parse(event.data);
+
+      setGlobalConfig({
+        type: GlobalConfigActionType.ADD_STREAM_ID,
+        payload: streamID,
+      });
+      setGlobalConfig({
+        type: GlobalConfigActionType.SET_STREAM_PROPERTY_NAMES,
+        payload: {
+          ...globalConfig.streamPropertyNames,
+          [streamID]: propertyNames,
+        }
+      });
 
       let logs: LogData[] = [];
       if(streamLog.has(streamID)) {
-        logs = streamLog.get(streamID) ?? [];
+        logs = streamLog.get(streamID)?.logs ?? [];
       }
 
       logs.unshift({
@@ -54,18 +73,41 @@ const useLogStreamWebSocket = (): CurrentStream => {
         ...rest,
       });
 
-      streamLog.set(streamID, logs);
+      streamLog.set(streamID, { isContextUpdated: false, logs });
+      hasLogsToRender = true;
 
-      setLogs({ streamID, logs });
+      // Updating React.State in every events causes slowness if many logs are
+      // inserted in short time.
+      // setLogs({ streamID, logs });
     });
+
+    intervalID = setInterval(() => {
+      if(hasLogsToRender) {
+        streamLog.forEach(({ logs }, streamID) => {
+          if(streamLog.get(streamID)?.isContextUpdated === false){
+            if(streamID === currentStreamID) {
+              setCurrentLogs({ streamID, logs });
+            }
+            streamLog.set(streamID, { isContextUpdated: true, logs });
+          }
+        });
+        hasLogsToRender = false;
+      }
+    }, 100);
 
     // Error
     socket.addEventListener('error', function(event) {
+      if(intervalID) {
+        clearInterval(intervalID);
+      }
       console.log('error', event);
     });
 
     // Close
     socket.addEventListener('close', function(event) {
+      if(intervalID) {
+        clearInterval(intervalID);
+      }
       console.log('closed', event);
       // Message from server
       setTimeout(() => {
@@ -76,16 +118,29 @@ const useLogStreamWebSocket = (): CurrentStream => {
   };
 
   useEffect(() => {
+    if(globalConfig.currentStreamID) {
+      const { logs = [] } = streamLog.get(globalConfig.currentStreamID) ?? {};
+      setCurrentLogs({ streamID: globalConfig.currentStreamID, logs });
+    }
+  }, [globalConfig.currentStreamID]);
+
+  useEffect(() => {
     connectWebSocket();
+
+    return (): void => {
+      if(intervalID) {
+        clearInterval(intervalID);
+      }
+    };
   }, []); // Only on Mount
 
-  return logs;
+  return currentLogs;
 };
 
 const LogStreamProvider:React.FC = props => {
-  const logs = useLogStreamWebSocket();
+  const currentLogs = useLogStreamWebSocket();
   return (
-    <LogStreamContext.Provider value={logs}>
+    <LogStreamContext.Provider value={currentLogs}>
       {props.children}
     </LogStreamContext.Provider>
   );

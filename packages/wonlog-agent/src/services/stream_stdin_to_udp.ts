@@ -16,6 +16,7 @@ program
 program.parse(process.argv);
 
 const _options = program.opts();
+_options.streamName = _options.streamName ?? nanoid();
 
 if (!_options.mute) {
   process.stdin.pipe(process.stdout);
@@ -30,7 +31,7 @@ _udpClient.bind(function () {
 
 process.stdin.pipe(split2()).on('data', function (textLog) {
   const hydratedLog: AgentLog = {
-    streamID: _options.streamName ?? nanoid(),
+    streamID: _options.streamName,
     logXRefID: nanoid(),
     timestamp: Date.now(),
     data: {},

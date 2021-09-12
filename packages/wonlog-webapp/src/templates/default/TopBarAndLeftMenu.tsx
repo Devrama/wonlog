@@ -14,9 +14,15 @@ import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
+import TextField from '@material-ui/core/TextField';
+import InputAdornment from '@material-ui/core/InputAdornment';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
+import Switch from '@material-ui/core/Switch';
 import InfoIcon from '@material-ui/icons/Info';
+import SearchIcon from '@material-ui/icons/Search';
 import SettingsIcon from '@material-ui/icons/Settings';
 import StorageIcon from '@material-ui/icons/Storage';
+import { useGlobalConfig, GlobalConfigActionType } from '../../context/GlobalConfigContext';
 
 const drawerWidth = 240;
 
@@ -71,7 +77,7 @@ const useStyles = makeStyles((theme) => ({
   toolbar: {
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'flex-end',
+    justifyContent: 'space-between',
     padding: theme.spacing(0, 1),
     // necessary for content to be below app bar
     ...theme.mixins.toolbar,
@@ -81,6 +87,7 @@ const useStyles = makeStyles((theme) => ({
 const LeftMenu:React.FC = () => {
   const classes = useStyles();
   const theme = useTheme();
+  const { globalConfig, setGlobalConfig } = useGlobalConfig();
   const [open, setOpen] = React.useState(true);
 
   const handleDrawerOpen = ():void => {
@@ -111,7 +118,22 @@ const LeftMenu:React.FC = () => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" display="inline" noWrap>WonLog - </Typography><Typography variant="subtitle1" display="inline" noWrap>Stream your log to web browsers.</Typography>
+          <Typography variant="h6" display="inline" noWrap>WonLog</Typography>
+          <TextField
+            id="standard-start-adornment"
+            // className={clsx(classes.margin, classes.textField)}
+            InputProps={{
+              startAdornment: <InputAdornment position="start"><SearchIcon /></InputAdornment>,
+            }}
+          />
+          <FormControlLabel
+            control={<Switch color="default" checked={true} onChange={(): void => {
+              // noop
+            }} name="regex" />}
+            label="Use regular expression"
+          />
+          <InfoIcon />
+          <SettingsIcon />
         </Toolbar>
       </AppBar>
       <Drawer
@@ -134,25 +156,14 @@ const LeftMenu:React.FC = () => {
         </div>
         <Divider />
         <List>
-          <ListItem button>
-            <ListItemIcon><InfoIcon /></ListItemIcon>
-            <ListItemText primary="About" />
-          </ListItem>
-          <ListItem button>
-            <ListItemIcon><SettingsIcon /></ListItemIcon>
-            <ListItemText primary="Settings" />
-          </ListItem>
-        </List>
-        <Divider />
-        <List>
-          <ListItem button>
-            <ListItemIcon><StorageIcon /></ListItemIcon>
-            <ListItemText primary="Log1" />
-          </ListItem>
-          <ListItem button>
-            <ListItemIcon><StorageIcon /></ListItemIcon>
-            <ListItemText primary="Log2" />
-          </ListItem>
+          {Array.from(globalConfig.streamIDs).map(streamID => {
+            return (
+              <ListItem key={streamID} button selected={globalConfig.currentStreamID === streamID} onClick={(): void => { setGlobalConfig({ type: GlobalConfigActionType.SET_CURRENT_STREAM_ID, payload: streamID }); }}>
+                <ListItemIcon><StorageIcon /></ListItemIcon>
+                <ListItemText primary={streamID} />
+              </ListItem>
+            );
+          })}
         </List>
       </Drawer>
     </>

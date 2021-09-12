@@ -169,7 +169,7 @@ export default function ReactVirtualizedTable(): ReactElement {
           {
             width: 200,
             label: 'streamID',
-            dataKey: '_streamID',
+            dataKey: '_seqID',
           },
           {
             width: 50,

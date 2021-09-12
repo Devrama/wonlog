@@ -3,6 +3,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import ContentArea from './ContentArea';
 import TopBarAndLeftMenu from './TopBarAndLeftMenu';
 import { LogStreamProvider } from '../../context/LogStreamContext';
+import { GlobalConfigProvider } from '../../context/GlobalConfigContext';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -29,15 +30,17 @@ const DefaultTemplate:React.FC = () => {
   const classes = useStyles();
 
   return (
-    <div className={classes.root}>
-      <TopBarAndLeftMenu />
-      <div className={classes.content}>
-        <div className={classes.toolbar} />
-        <LogStreamProvider>
-          <ContentArea/>
-        </LogStreamProvider>
+    <GlobalConfigProvider>
+      <div className={classes.root}>
+        <TopBarAndLeftMenu />
+        <div className={classes.content}>
+          <div className={classes.toolbar} />
+          <LogStreamProvider>
+            <ContentArea/>
+          </LogStreamProvider>
+        </div>
       </div>
-    </div>
+    </GlobalConfigProvider>
   );
 };
 
