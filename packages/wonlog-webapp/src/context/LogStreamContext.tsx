@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react';
+import { format, fromUnixTime } from 'date-fns';
 import { HydratedLog } from '../types/wonlog_shared';
 import { useGlobalConfig, GlobalConfigActionType } from './GlobalConfigContext';
 
@@ -9,6 +10,8 @@ export interface LogData {
   _streamID: string
   _logXRefID: string
   _timestamp: number
+  _datetime: string
+  message: string
   [key: string]: unknown
 }
 
@@ -22,13 +25,16 @@ const LogStreamContext = createContext<CurrentStream>({ logs: []});
 // Create WebSocket connection.
 let socket: WebSocket;
 const streamLog = new Map<string, { isContextUpdated: boolean, logs: LogData[] }>();
+let filteredStreamLog: Map<string, { isContextUpdated: boolean, logs: LogData[] }> | null = new Map<string, { isContextUpdated: boolean, logs: LogData[] }>();
 let intervalID: NodeJS.Timeout | null = null;
 let currentStreamID: string | undefined;
+let searchKeyword: string | undefined;
 
 const useLogStreamWebSocket = (): CurrentStream => {
   const [ currentLogs, setCurrentLogs ] = useState<CurrentStream>({ logs: [] });
   const { globalConfig, setGlobalConfig } = useGlobalConfig();
   currentStreamID = globalConfig.currentStreamID;
+  searchKeyword = globalConfig.searchKeyword;
 
   const connectWebSocket = (): void => {
     let hasLogsToRender = false;
@@ -46,7 +52,7 @@ const useLogStreamWebSocket = (): CurrentStream => {
 
     // Listen for messages
     socket.addEventListener('message', function(event) {
-      const { wonlogMetadata: { seqID, streamID, logXRefID, timestamp, propertyNames }, ...rest }: IncomingLog = JSON.parse(event.data);
+      const { wonlogMetadata: { seqID, streamID, logXRefID, timestamp, propertyNames }, message, ...rest }: IncomingLog = JSON.parse(event.data);
 
       setGlobalConfig({
         type: GlobalConfigActionType.ADD_STREAM_ID,
@@ -61,17 +67,30 @@ const useLogStreamWebSocket = (): CurrentStream => {
       });
 
       let logs: LogData[] = [];
+      let filteredLogs: LogData[] = [];
       if(streamLog.has(streamID)) {
         logs = streamLog.get(streamID)?.logs ?? [];
       }
+      if(filteredStreamLog?.has(streamID)) {
+        filteredLogs = filteredStreamLog.get(streamID)?.logs ?? [];
+      }
 
-      logs.unshift({
+      const logData: LogData = {
           _seqID: seqID,
         _streamID: streamID,
         _logXRefID: logXRefID,
         _timestamp: timestamp,
+        _datetime: format(fromUnixTime(Math.floor(timestamp/1000)), 'yyyy-MM-dd HH:mm:ss'),
+        message,
         ...rest,
-      });
+      };
+
+      logs.unshift(logData);
+
+      if(searchKeyword && message.includes(searchKeyword) && filteredStreamLog?.has(streamID)) {
+        filteredLogs.unshift(logData);
+        filteredStreamLog.set(streamID, { isContextUpdated: false, logs: filteredLogs });
+      }
 
       streamLog.set(streamID, { isContextUpdated: false, logs });
       hasLogsToRender = true;
@@ -83,10 +102,29 @@ const useLogStreamWebSocket = (): CurrentStream => {
 
     intervalID = setInterval(() => {
       if(hasLogsToRender) {
+        if(filteredStreamLog === null && searchKeyword) {
+          filteredStreamLog = new Map<string, { isContextUpdated: boolean, logs: LogData[] }>();
+          streamLog.forEach(({ logs }, streamID) => {
+            const currentLogs = logs.filter(log => {
+              return searchKeyword ? log.message.includes(searchKeyword) : true;
+            });
+            filteredStreamLog && filteredStreamLog.set(streamID, { isContextUpdated: true, logs: currentLogs });
+          });
+        }
+
         streamLog.forEach(({ logs }, streamID) => {
           if(streamLog.get(streamID)?.isContextUpdated === false){
             if(streamID === currentStreamID) {
-              setCurrentLogs({ streamID, logs });
+              if(filteredStreamLog) {
+                setCurrentLogs({ streamID, logs: filteredStreamLog.get(streamID)?.logs ?? [] });
+              } else {
+                setCurrentLogs({ streamID, logs });
+              }
+            } else if (!currentStreamID){
+              setGlobalConfig({
+                type: GlobalConfigActionType.SET_CURRENT_STREAM_ID,
+                payload: streamID,
+              });
             }
             streamLog.set(streamID, { isContextUpdated: true, logs });
           }
@@ -118,11 +156,18 @@ const useLogStreamWebSocket = (): CurrentStream => {
   };
 
   useEffect(() => {
+    searchKeyword = globalConfig.searchKeyword;
+    filteredStreamLog = null;
+  }, [globalConfig.searchKeyword]);
+
+  /*
+  useEffect(() => {
     if(globalConfig.currentStreamID) {
       const { logs = [] } = streamLog.get(globalConfig.currentStreamID) ?? {};
       setCurrentLogs({ streamID: globalConfig.currentStreamID, logs });
     }
   }, [globalConfig.currentStreamID]);
+   */
 
   useEffect(() => {
     connectWebSocket();

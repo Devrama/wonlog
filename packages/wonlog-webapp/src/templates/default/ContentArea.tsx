@@ -167,19 +167,9 @@ export default function ReactVirtualizedTable(): ReactElement {
         rowGetter={({ index }): LogData => logs[index]}
         columns={[
           {
-            width: 200,
-            label: 'streamID',
-            dataKey: '_seqID',
-          },
-          {
-            width: 50,
-            label: 'ID',
-            dataKey: '_seqID',
-          },
-          {
             width: 250,
             label: 'DateTime',
-            dataKey: '_timestamp',
+            dataKey: '_datetime',
           },
           {
             width: 800,

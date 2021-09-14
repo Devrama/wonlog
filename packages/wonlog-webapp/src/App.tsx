@@ -1,27 +1,12 @@
 import React from 'react';
-import useMediaQuery from '@material-ui/core/useMediaQuery';
-import { createTheme, ThemeProvider } from '@material-ui/core/styles';
-import CssBaseline from '@material-ui/core/CssBaseline';
+import { GlobalConfigProvider } from './context/GlobalConfigContext';
 import DefaultTemplate from './templates/default';
 
 const App = (): React.ReactElement  => {
-  const prefersDarkMode = useMediaQuery('(prefers-color-scheme: dark)');
-
-  const theme = React.useMemo(
-    () =>
-    createTheme({
-      palette: {
-        type: prefersDarkMode ? 'dark' : 'light',
-      },
-    }),
-    [prefersDarkMode],
-  );
-
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
+    <GlobalConfigProvider>
       <DefaultTemplate />
-    </ThemeProvider>
+    </GlobalConfigProvider>
   );
 };
 

@@ -11,14 +11,14 @@ program
   .option('-h, --host [host]', 'Server host', '127.0.0.1')
   .option('-p, --port [port]', 'Server port', '7081')
   .option('-s, --stream-name [name]', 'Stream name')
-  .option('-m, --mute [type]', 'Disable printing logs', false);
+  .option('-v, --verbose [type]', 'Print logs', false);
 
 program.parse(process.argv);
 
 const _options = program.opts();
 _options.streamName = _options.streamName ?? nanoid();
 
-if (!_options.mute) {
+if (_options.verbose) {
   process.stdin.pipe(process.stdout);
 }
 
@@ -51,7 +51,7 @@ process.stdin.pipe(split2()).on('data', function (textLog) {
     hydratedLog.timestamp = isNaN(parsedTime) ? Date.now() : parsedTime;
   }
 
-  hydratedLog.data = parsedLog ?? textLog;
+  hydratedLog.data = parsedLog ?? { message: textLog };
   const buffer = Buffer.from(JSON.stringify(hydratedLog));
 
   _countMessagesInQueue++;

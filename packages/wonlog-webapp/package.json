@@ -5,6 +5,7 @@
   "dependencies": {
     "@material-ui/core": "4.12.3",
     "@material-ui/icons": "4.11.2",
+    "@material-ui/lab": "4.0.0-alpha.60",
     "@testing-library/jest-dom": "5.14.1",
     "@testing-library/react": "12.0.0",
     "@testing-library/user-event": "13.2.1",
@@ -14,7 +15,8 @@
     "react": "17.0.2",
     "react-dom": "17.0.2",
     "react-scripts": "4.0.3",
-    "react-virtualized": "9.22.3"
+    "react-virtualized": "9.22.3",
+    "react-window": "1.8.6"
   },
   "scripts": {
     "serve": "serve -s ../wonlog/dist/build",

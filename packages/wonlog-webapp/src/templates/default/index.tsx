@@ -3,7 +3,9 @@ import { makeStyles } from '@material-ui/core/styles';
 import ContentArea from './ContentArea';
 import TopBarAndLeftMenu from './TopBarAndLeftMenu';
 import { LogStreamProvider } from '../../context/LogStreamContext';
-import { GlobalConfigProvider } from '../../context/GlobalConfigContext';
+import { createTheme, ThemeProvider } from '@material-ui/core/styles';
+import CssBaseline from '@material-ui/core/CssBaseline';
+import { useGlobalConfig } from '../../context/GlobalConfigContext';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -22,15 +24,27 @@ const useStyles = makeStyles((theme) => ({
     display: 'flex',
     flexDirection: 'column',
     flexGrow: 1,
-    // padding: theme.spacing(3),
   },
 }));
 
 const DefaultTemplate:React.FC = () => {
   const classes = useStyles();
+  const { globalConfig } = useGlobalConfig();
+
+  const theme = React.useMemo(
+    () =>
+    createTheme({
+      palette: {
+        type: globalConfig.darkmode,
+      },
+    }),
+    [globalConfig.darkmode],
+  );
+
 
   return (
-    <GlobalConfigProvider>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
       <div className={classes.root}>
         <TopBarAndLeftMenu />
         <div className={classes.content}>
@@ -40,7 +54,7 @@ const DefaultTemplate:React.FC = () => {
           </LogStreamProvider>
         </div>
       </div>
-    </GlobalConfigProvider>
+    </ThemeProvider>
   );
 };
 

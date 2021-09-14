@@ -8,7 +8,9 @@ import {
 const initialState: GlobalConfigState = {
   currentStreamID: undefined,
   streamIDs: new Set(),
+  darkmode: 'light',
   streamPropertyNames: {},
+  searchKeyword: undefined,
 };
 
 const globalConfigReducer = (state: GlobalConfigState, action: GlobalConfigAction): GlobalConfigState => {
@@ -17,6 +19,16 @@ const globalConfigReducer = (state: GlobalConfigState, action: GlobalConfigActio
       return {
         ...state,
         currentStreamID: action.payload,
+      };
+    case GlobalConfigActionType.SET_SEARCH_KEYWORD:
+      return {
+        ...state,
+        searchKeyword: action.payload,
+      };
+    case GlobalConfigActionType.SET_DARKMODE:
+      return {
+        ...state,
+        darkmode: action.payload,
       };
     case GlobalConfigActionType.ADD_STREAM_ID:
 

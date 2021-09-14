@@ -13,6 +13,7 @@ export interface HydratedLog {
     timestamp: number;
     propertyNames: string[];
   };
+  message: string;
   [key: string]: unknown;
 }
 
