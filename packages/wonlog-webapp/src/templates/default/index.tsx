@@ -27,7 +27,11 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const DefaultTemplate:React.FC = () => {
+interface DefaultTemplateProps {
+  contentComponent: React.FC
+}
+
+const DefaultTemplate:React.FC<DefaultTemplateProps> = ({ contentComponent }) => {
   const classes = useStyles();
   const { globalConfig } = useGlobalConfig();
 
@@ -50,7 +54,7 @@ const DefaultTemplate:React.FC = () => {
         <div className={classes.content}>
           <div className={classes.toolbar} />
           <LogStreamProvider>
-            <ContentArea/>
+            <ContentArea contentComponent={contentComponent}/>
           </LogStreamProvider>
         </div>
       </div>

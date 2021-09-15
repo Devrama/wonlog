@@ -3,14 +3,22 @@ import {
   GlobalConfigActionType,
   GlobalConfigAction,
   GlobalConfigState,
+  GlobalConfigSetDarkmodePayload,
+  GlobalConfigSetSearchModePayload,
 } from './GlobalConfigContextTypes';
+
+const LOCAL_STORAGE = {
+  DARK_MODE: 'wonlog.darkmode',
+  SEARCH_MODE: 'wonlog.searchMode',
+};
 
 const initialState: GlobalConfigState = {
   currentStreamID: undefined,
-  streamIDs: new Set(),
-  darkmode: 'light',
-  streamPropertyNames: {},
   searchKeyword: undefined,
+  searchMode: (window.localStorage.getItem(LOCAL_STORAGE.SEARCH_MODE) ?? GlobalConfigSetSearchModePayload.TEXT) as GlobalConfigSetSearchModePayload,
+  darkmode: (window.localStorage.getItem(LOCAL_STORAGE.DARK_MODE) ?? GlobalConfigSetDarkmodePayload.LIGHT) as GlobalConfigSetDarkmodePayload,
+  streamIDs: new Set(),
+  streamPropertyNames: {},
 };
 
 const globalConfigReducer = (state: GlobalConfigState, action: GlobalConfigAction): GlobalConfigState => {
@@ -25,7 +33,14 @@ const globalConfigReducer = (state: GlobalConfigState, action: GlobalConfigActio
         ...state,
         searchKeyword: action.payload,
       };
+    case GlobalConfigActionType.SET_SEARCH_MODE:
+      window.localStorage.setItem(LOCAL_STORAGE.SEARCH_MODE, action.payload);
+      return {
+        ...state,
+        searchMode: action.payload,
+      };
     case GlobalConfigActionType.SET_DARKMODE:
+      window.localStorage.setItem(LOCAL_STORAGE.DARK_MODE, action.payload);
       return {
         ...state,
         darkmode: action.payload,
@@ -76,4 +91,11 @@ const useGlobalConfig = (): {
   };
 };
 
-export { GlobalConfigContext, GlobalConfigProvider, useGlobalConfig, GlobalConfigActionType };
+export {
+  GlobalConfigContext,
+  GlobalConfigProvider,
+  useGlobalConfig,
+  GlobalConfigActionType,
+  GlobalConfigSetDarkmodePayload,
+  GlobalConfigSetSearchModePayload,
+};

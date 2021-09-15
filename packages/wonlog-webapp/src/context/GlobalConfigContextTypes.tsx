@@ -1,16 +1,24 @@
 // Action Type Enums
 export enum GlobalConfigActionType {
-  SET_CURRENT_STREAM_ID,
-  SET_SEARCH_KEYWORD,
-  SET_DARKMODE,
-  ADD_STREAM_ID,
-  SET_STREAM_PROPERTY_NAMES,
+  SET_CURRENT_STREAM_ID = 'SET_CURRENT_STREAM_ID',
+  SET_SEARCH_KEYWORD = 'SET_SEARCH_KEYWORD',
+  SET_SEARCH_MODE = 'SET_SEARCH_MODE',
+  SET_DARKMODE = 'SET_DARKMODE',
+  ADD_STREAM_ID = 'ADD_STREAM_ID',
+  SET_STREAM_PROPERTY_NAMES = 'SET_STREAM_PROPERTY_NAMES',
 }
 
 // Action Payloads
 type GlobalConfigSetCurrentStreamIDPayload = string
 type GlobalConfigSetSearchKeywordPayload = string
-type GlobalConfigSetDarkmodePayload = 'light' | 'dark'
+export enum GlobalConfigSetSearchModePayload {
+  TEXT = 'text',
+  REGEX = 'regex',
+}
+export enum GlobalConfigSetDarkmodePayload {
+  LIGHT = 'light',
+  DARK = 'dark',
+}
 type GlobalConfigAddStreamIDPayload = string
 
 interface GlobalConfigStreamPropertyNamesPayload {
@@ -25,6 +33,10 @@ interface GlobalConfigSetCurrentStreamIDAction {
 interface GlobalConfigSetSearchKeywordAction {
   type: GlobalConfigActionType.SET_SEARCH_KEYWORD
   payload: GlobalConfigSetSearchKeywordPayload
+}
+interface GlobalConfigSetSearchModeAction {
+  type: GlobalConfigActionType.SET_SEARCH_MODE
+  payload: GlobalConfigSetSearchModePayload
 }
 interface GlobalConfigSetDarkmodeAction {
   type: GlobalConfigActionType.SET_DARKMODE
@@ -42,14 +54,15 @@ interface GlobalConfigStreamPropertyNamesAction {
 export type GlobalConfigAction =
   | GlobalConfigSetCurrentStreamIDAction
   | GlobalConfigSetSearchKeywordAction
+  | GlobalConfigSetSearchModeAction
   | GlobalConfigSetDarkmodeAction
-  | GlobalConfigAddStreamIDAction
   | GlobalConfigAddStreamIDAction
   | GlobalConfigStreamPropertyNamesAction
 
 export interface GlobalConfigState {
   currentStreamID?: GlobalConfigSetCurrentStreamIDPayload
   searchKeyword?: GlobalConfigSetSearchKeywordPayload
+  searchMode: GlobalConfigSetSearchModePayload
   darkmode: GlobalConfigSetDarkmodePayload
   streamIDs: Set<GlobalConfigAddStreamIDPayload>
   streamPropertyNames: GlobalConfigStreamPropertyNamesPayload

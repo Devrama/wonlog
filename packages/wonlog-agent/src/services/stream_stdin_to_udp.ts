@@ -22,8 +22,10 @@ if (_options.verbose) {
   process.stdin.pipe(process.stdout);
 }
 
+const JUNK_MAX_SIZE = 50000;
 let _isStdinClosed = false;
 let _countMessagesInQueue = 0;
+let _buffer: AgentLog[] = [];
 const _udpClient = dgram.createSocket('udp4');
 _udpClient.bind(function () {
   _udpClient.setBroadcast(true);
@@ -52,23 +54,59 @@ process.stdin.pipe(split2()).on('data', function (textLog) {
   }
 
   hydratedLog.data = parsedLog ?? { message: textLog };
-  const buffer = Buffer.from(JSON.stringify(hydratedLog));
-
-  _countMessagesInQueue++;
-  _udpClient.send(
-    buffer,
-    0,
-    buffer.length,
-    _options.port,
-    _options.host,
-    function () {
-      _countMessagesInQueue--;
-      if (_isStdinClosed && _countMessagesInQueue === 0) {
-        _udpClient.close();
-      }
-    }
-  );
+  _buffer.push(hydratedLog);
 });
+
+setInterval(() => {
+  let junk: AgentLog[] = [];
+  let currentJunkSize = 0;
+  for (const element of _buffer) {
+    const nextJunkSize = currentJunkSize + JSON.stringify(element).length;
+    if (JUNK_MAX_SIZE < nextJunkSize) {
+      const data = Buffer.from(JSON.stringify(junk));
+      _countMessagesInQueue++;
+      _udpClient.send(
+        data,
+        0,
+        data.length,
+        _options.port,
+        _options.host,
+        function () {
+          _countMessagesInQueue--;
+          if (_isStdinClosed && _countMessagesInQueue === 0) {
+            _udpClient.close();
+          }
+        }
+      );
+
+      junk = [element]; // reset, and add the current element
+      currentJunkSize = JSON.stringify(element).length; // reset, and add the length of the current element
+    } else {
+      junk.push(element); // add the current element
+      currentJunkSize += JSON.stringify(element).length; // add the length of the current element
+    }
+  }
+
+  if (junk.length > 0) {
+    const data = Buffer.from(JSON.stringify(junk));
+    _countMessagesInQueue++;
+    _udpClient.send(
+      data,
+      0,
+      data.length,
+      _options.port,
+      _options.host,
+      function () {
+        _countMessagesInQueue--;
+        if (_isStdinClosed && _countMessagesInQueue === 0) {
+          _udpClient.close();
+        }
+      }
+    );
+  }
+
+  _buffer = []; // reset
+}, 300);
 
 process.stdin.on('end', function () {
   _isStdinClosed = true;

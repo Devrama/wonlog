@@ -16,23 +16,28 @@ export class WonlogWebSocketServer extends WonWebSocketServer {
    * @override
    */
   protected onBroadcast(buffer: Buffer): string {
-    const { streamID, logXRefID, timestamp, data }: IncomingLog = JSON.parse(
-      buffer.toString()
-    );
-    if (streamSeqID.has(streamID)) {
-      streamSeqID.set(streamID, Number(streamSeqID.get(streamID)) + 1);
-    } else {
-      streamSeqID.set(streamID, 1);
+    const incomingLogs: IncomingLog[] = JSON.parse(buffer.toString());
+    const outgoingLogs: OutgoingLog[] = [];
+    for (const { streamID, logXRefID, timestamp, data } of incomingLogs) {
+      if (streamSeqID.has(streamID)) {
+        streamSeqID.set(streamID, Number(streamSeqID.get(streamID)) + 1);
+      } else {
+        streamSeqID.set(streamID, 1);
+      }
+
+      outgoingLogs.push({
+        ...data,
+        message: data.message as string,
+        wonlogMetadata: {
+          seqID: streamSeqID.get(streamID) as number,
+          streamID,
+          logXRefID,
+          timestamp,
+          propertyNames: Object.keys(data),
+        },
+      });
     }
-    return JSON.stringify({
-      ...data,
-      wonlogMetadata: {
-        seqID: streamSeqID.get(streamID),
-        streamID,
-        logXRefID,
-        timestamp,
-        propertyNames: Object.keys(data),
-      },
-    } as OutgoingLog);
+
+    return JSON.stringify(outgoingLogs);
   }
 }

@@ -1,11 +1,11 @@
 import React from 'react';
 import { GlobalConfigProvider } from './context/GlobalConfigContext';
-import DefaultTemplate from './templates/default';
+import Routes from './Routes';
 
 const App = (): React.ReactElement  => {
   return (
     <GlobalConfigProvider>
-      <DefaultTemplate />
+      <Routes />
     </GlobalConfigProvider>
   );
 };

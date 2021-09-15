@@ -25,7 +25,12 @@ import InfoIcon from '@material-ui/icons/Info';
 import SearchIcon from '@material-ui/icons/Search';
 import SettingsIcon from '@material-ui/icons/Settings';
 import LibraryBooksIcon from '@material-ui/icons/LibraryBooks';
-import { useGlobalConfig, GlobalConfigActionType } from '../../context/GlobalConfigContext';
+import {
+  useGlobalConfig,
+  GlobalConfigActionType,
+  GlobalConfigSetDarkmodePayload,
+  GlobalConfigSetSearchModePayload,
+} from '../../context/GlobalConfigContext';
 
 const drawerWidth = 240;
 
@@ -204,8 +209,11 @@ const LeftMenu:React.FC = () => {
             />
           </div>
           <FormControlLabel
-            control={<Switch color="default" checked={true} onChange={(): void => {
-              // noop
+            control={<Switch color="default" checked={globalConfig.searchMode === GlobalConfigSetSearchModePayload.REGEX} onChange={(e): void => {
+              setGlobalConfig({
+                type: GlobalConfigActionType.SET_SEARCH_MODE,
+                payload: e.target.checked ? GlobalConfigSetSearchModePayload.REGEX : GlobalConfigSetSearchModePayload.TEXT,
+              });
             }} name="regex" />}
             label="Regex"
           />
@@ -221,10 +229,10 @@ const LeftMenu:React.FC = () => {
             }}
             aria-label="text alignment"
           >
-            <ToggleButton value="dark" aria-label="dark">
+            <ToggleButton value={GlobalConfigSetDarkmodePayload.DARK} aria-label={GlobalConfigSetDarkmodePayload.DARK}>
               <Brightness2Icon />
             </ToggleButton>
-            <ToggleButton value="light" aria-label="light">
+            <ToggleButton value={GlobalConfigSetDarkmodePayload.LIGHT} aria-label={GlobalConfigSetDarkmodePayload.LIGHT}>
               <Brightness5Icon />
             </ToggleButton>
           </ToggleButtonGroup>
