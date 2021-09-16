@@ -25,11 +25,17 @@ if (_options.verbose) {
 const JUNK_MAX_SIZE = 50000;
 let _isStdinClosed = false;
 let _countMessagesInQueue = 0;
-let _buffer: AgentLog[] = [];
+let _buffer: string[] = [];
+let _bufferSize: number = 0;
+let _isTimedOut: boolean = false;
 const _udpClient = dgram.createSocket('udp4');
 _udpClient.bind(function () {
   _udpClient.setBroadcast(true);
 });
+
+const timer = setInterval((): void => {
+  _isTimedOut = true;
+}, 300);
 
 process.stdin.pipe(split2()).on('data', function (textLog) {
   const hydratedLog: AgentLog = {
@@ -54,41 +60,11 @@ process.stdin.pipe(split2()).on('data', function (textLog) {
   }
 
   hydratedLog.data = parsedLog ?? { message: textLog };
-  _buffer.push(hydratedLog);
-});
+  const stringifiedData = JSON.stringify(hydratedLog);
+  const stringifiedDataSize = stringifiedData.length;
 
-setInterval(() => {
-  let junk: AgentLog[] = [];
-  let currentJunkSize = 0;
-  for (const element of _buffer) {
-    const nextJunkSize = currentJunkSize + JSON.stringify(element).length;
-    if (JUNK_MAX_SIZE < nextJunkSize) {
-      const data = Buffer.from(JSON.stringify(junk));
-      _countMessagesInQueue++;
-      _udpClient.send(
-        data,
-        0,
-        data.length,
-        _options.port,
-        _options.host,
-        function () {
-          _countMessagesInQueue--;
-          if (_isStdinClosed && _countMessagesInQueue === 0) {
-            _udpClient.close();
-          }
-        }
-      );
-
-      junk = [element]; // reset, and add the current element
-      currentJunkSize = JSON.stringify(element).length; // reset, and add the length of the current element
-    } else {
-      junk.push(element); // add the current element
-      currentJunkSize += JSON.stringify(element).length; // add the length of the current element
-    }
-  }
-
-  if (junk.length > 0) {
-    const data = Buffer.from(JSON.stringify(junk));
+  if (JUNK_MAX_SIZE < _bufferSize + stringifiedDataSize || _isTimedOut) {
+    const data = Buffer.from(`[${_buffer.join(',')}]`);
     _countMessagesInQueue++;
     _udpClient.send(
       data,
@@ -103,13 +79,19 @@ setInterval(() => {
         }
       }
     );
-  }
 
-  _buffer = []; // reset
-}, 300);
+    _bufferSize = stringifiedDataSize;
+    _buffer = [stringifiedData];
+    _isTimedOut = false;
+  } else {
+    _bufferSize += stringifiedDataSize;
+    _buffer.push(stringifiedData);
+  }
+});
 
 process.stdin.on('end', function () {
   _isStdinClosed = true;
+  clearInterval(timer);
   if (!_countMessagesInQueue) {
     _udpClient.close();
   }

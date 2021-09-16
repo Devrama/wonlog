@@ -64,6 +64,6 @@ export interface GlobalConfigState {
   searchKeyword?: GlobalConfigSetSearchKeywordPayload
   searchMode: GlobalConfigSetSearchModePayload
   darkmode: GlobalConfigSetDarkmodePayload
-  streamIDs: Set<GlobalConfigAddStreamIDPayload>
+  streamIDs: GlobalConfigAddStreamIDPayload[]
   streamPropertyNames: GlobalConfigStreamPropertyNamesPayload
 }

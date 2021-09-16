@@ -17,7 +17,7 @@ const initialState: GlobalConfigState = {
   searchKeyword: undefined,
   searchMode: (window.localStorage.getItem(LOCAL_STORAGE.SEARCH_MODE) ?? GlobalConfigSetSearchModePayload.TEXT) as GlobalConfigSetSearchModePayload,
   darkmode: (window.localStorage.getItem(LOCAL_STORAGE.DARK_MODE) ?? GlobalConfigSetDarkmodePayload.LIGHT) as GlobalConfigSetDarkmodePayload,
-  streamIDs: new Set(),
+  streamIDs: [],
   streamPropertyNames: {},
 };
 
@@ -46,12 +46,9 @@ const globalConfigReducer = (state: GlobalConfigState, action: GlobalConfigActio
         darkmode: action.payload,
       };
     case GlobalConfigActionType.ADD_STREAM_ID:
-
-      state.streamIDs.add(action.payload);
-
       return {
         ...state,
-        streamIDs: state.streamIDs,
+        streamIDs: state.streamIDs.includes(action.payload) ? state.streamIDs : [...state.streamIDs, action.payload],
       };
     case GlobalConfigActionType.SET_STREAM_PROPERTY_NAMES:
       return {
