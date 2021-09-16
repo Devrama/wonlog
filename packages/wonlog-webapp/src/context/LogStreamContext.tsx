@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, { createContext, useState, useEffect } from 'react';
 import { isEqual, union } from 'lodash';
 import { format, fromUnixTime } from 'date-fns';
@@ -17,6 +16,7 @@ export interface LogData {
   _logXRefID: string
   _timestamp: number
   _datetime: string
+  _raw: string
   message: string
   [key: string]: unknown
 }
@@ -80,12 +80,14 @@ const useLogStreamWebSocket = (): CurrentStream => {
           filteredLogs = _filteredStreamLog.get(streamID)?.logs ?? [];
         }
 
+        const dateTime: string = format(fromUnixTime(Math.floor(timestamp/1000)), 'yyyy-MM-dd HH:mm:ss');
         const logData: LogData = {
-            _seqID: seqID,
+          _seqID: seqID,
           _streamID: streamID,
           _logXRefID: logXRefID,
           _timestamp: timestamp,
-          _datetime: format(fromUnixTime(Math.floor(timestamp/1000)), 'yyyy-MM-dd HH:mm:ss'),
+          _datetime: dateTime,
+          _raw: JSON.stringify([dateTime, message, { ...rest }]),
           message,
           ...rest,
         };
@@ -95,10 +97,10 @@ const useLogStreamWebSocket = (): CurrentStream => {
           logs.pop();
         }
 
-        if(_searchKeyword && hasText(message, _searchKeyword) && _filteredStreamLog?.has(streamID)) {
+        if(_searchKeyword && hasText(logData._raw, _searchKeyword) && _filteredStreamLog?.has(streamID)) {
           filteredLogs.unshift(logData);
           if(filteredLogs.length > MAX_BUFFER) {
-            logs.pop();
+            filteredLogs.pop();
           }
           _filteredStreamLog.set(streamID, { isContextUpdated: false, logs: filteredLogs });
         }
@@ -139,7 +141,7 @@ const useLogStreamWebSocket = (): CurrentStream => {
           _filteredStreamLog = new Map<string, { isContextUpdated: boolean, logs: LogData[] }>();
           _streamLog.forEach(({ logs }, streamID) => {
             const currentLogs = logs.filter(log => {
-              return _searchKeyword ? hasText(log.message, _searchKeyword) : true;
+              return _searchKeyword ? hasText(log._raw, _searchKeyword) : true;
             });
             _filteredStreamLog && _filteredStreamLog.set(streamID, { isContextUpdated: true, logs: currentLogs });
           });
@@ -195,7 +197,6 @@ const useLogStreamWebSocket = (): CurrentStream => {
 
   useEffect(() => {
     if(_currentStreamID) {
-      console.log(_currentStreamID);
       setCurrentLogs({ streamID: _currentStreamID, logs: _streamLog.get(_currentStreamID)?.logs ?? [] });
     }
   }, [_currentStreamID]);
