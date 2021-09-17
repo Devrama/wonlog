@@ -21,7 +21,7 @@ export interface LogData {
   [key: string]: unknown
 }
 
-interface CurrentStream {
+export interface CurrentStream {
   streamID?: string
   logs: LogData[]
 }

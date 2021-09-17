@@ -7,6 +7,29 @@ import { createTheme, ThemeProvider } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import { useGlobalConfig } from '../../context/GlobalConfigContext';
 
+interface WonlogTheme {
+  palette: {
+    default: DarkModeColor
+    critical: DarkModeColor
+    debug: DarkModeColor
+    trace: DarkModeColor
+  },
+}
+
+declare module '@material-ui/core/styles/createTheme' {
+  export interface ThemeOptions {
+    wonlog: WonlogTheme
+  }
+  export interface Theme {
+    wonlog: WonlogTheme
+  }
+}
+
+interface DarkModeColor {
+  dark: string
+  light: string
+}
+
 const useStyles = makeStyles((theme) => ({
   root: {
     display: 'flex',
@@ -40,6 +63,26 @@ const DefaultTemplate:React.FC<DefaultTemplateProps> = ({ contentComponent }) =>
     createTheme({
       palette: {
         type: globalConfig.darkmode,
+      },
+      wonlog: {
+        palette: {
+          default: {
+            dark: '#fff2cc',
+            light: '#fff2cc',
+          },
+          critical: {
+            dark: '#c00000',
+            light: '#c00000',
+          },
+          debug: {
+            dark: '#5b9bd5',
+            light: '#9cd0ff',
+          },
+          trace: {
+            dark: '#ddebf7',
+            light: '#ddebf7',
+          },
+        },
       },
     }),
     [globalConfig.darkmode],

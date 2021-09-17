@@ -21,3 +21,13 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* react-virtualized */
+.ReactVirtualized__Grid.ReactVirtualized__Table__Grid {
+  padding-right: 5px;
+}
+
+.ReactVirtualized__Table__headerColumn:last-child,
+.ReactVirtualized__Table__rowColumn[aria-colindex="2"] {
+  flex-grow: 1 !important;
+}
