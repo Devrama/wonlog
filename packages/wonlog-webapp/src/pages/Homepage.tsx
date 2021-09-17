@@ -1,11 +1,15 @@
 import React, { ReactElement, useContext, useState } from 'react';
 import clsx from 'clsx';
+import ReactJson from 'react-json-view';
 import { makeStyles } from '@material-ui/core/styles';
 import TableCell from '@material-ui/core/TableCell';
 import Paper from '@material-ui/core/Paper';
+import Drawer from '@material-ui/core/Drawer';
 import { AutoSizer, Column, Table, TableCellRenderer, TableHeaderProps, RowMouseEventHandlerParams, ScrollEventData } from 'react-virtualized';
 import { LogStreamContext, LogData } from '../context/LogStreamContext';
 import { GlobalConfigSetDarkmodePayload } from '../context/GlobalConfigContext';
+import IconButton from '@material-ui/core/IconButton';
+import CloseIcon from '@material-ui/icons/Close';
 
 interface ColumnData {
   dataKey: string;
@@ -29,6 +33,12 @@ interface VirtualizedTableProps  {
 }
 
 const useStyles = makeStyles((theme) => ({
+  detailDrawer: {
+    inset: 'unset !important',
+    '& .MuiDrawer-paper': {
+      width: 'calc(100% - 500px)',
+    },
+  },
   flexContainer: {
     display: 'flex',
     alignItems: 'center',
@@ -202,8 +212,11 @@ const VirtualizedTable:React.FC<VirtualizedTableProps> = ({
 let oldLogsOnScreen: LogData[] = [];
 
 export default function Homepage(): ReactElement {
+  const classes = useStyles();
   const { logs } = useContext(LogStreamContext);
   const [isScrollOnTop, setIsScrollOnTop] = useState(true);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [currentDetailLog, setCurrentDetailLog] = useState<LogData>();
 
   if(!isScrollOnTop && oldLogsOnScreen.length === 0) {
     oldLogsOnScreen = [...logs];
@@ -211,54 +224,19 @@ export default function Homepage(): ReactElement {
     oldLogsOnScreen = [];
   }
 
-  if(oldLogsOnScreen.length > 0) {
-    return (
-      <Paper style={{ height: '100%', width: '100%' }}>
-        <VirtualizedTable
-          rowCount={oldLogsOnScreen.length}
-          rowGetter={({ index }): LogData => oldLogsOnScreen[index]}
-          onRowClick={({ index, rowData }): void => {
-            console.log('haha', index, rowData);
-          }}
-          onScroll={({ scrollTop }): void => {
-            if(scrollTop === 0) {
-              setIsScrollOnTop(true);
-            } else {
-              setIsScrollOnTop(false);
-            }
-          }}
-          columns={[
-            {
-              width: 150,
-              label: 'DateTime',
-              dataKey: '_datetime',
-            },
-            {
-              width: 400,
-              label: 'Message',
-              dataKey: 'message',
-              numeric: false,
-            },
-          ]}
-        />
-      </Paper>
-    );
-  }
-
   return (
     <Paper style={{ height: '100%', width: '100%' }}>
       <VirtualizedTable
-        rowCount={logs.length}
-        rowGetter={({ index }): LogData => logs[index]}
-        onRowClick={({ index, rowData }): void => {
-          console.log('haha', index, rowData);
+        rowCount={oldLogsOnScreen.length > 0 ? oldLogsOnScreen.length : logs.length}
+        rowGetter={({ index }): LogData => oldLogsOnScreen.length > 0 ? oldLogsOnScreen[index] : logs[index]}
+        onRowClick={({ rowData }): void => {
+          setIsDetailOpen(true);
+          setCurrentDetailLog(rowData);
         }}
         onScroll={({ scrollTop }): void => {
           if(scrollTop === 0) {
-            console.log(true);
             setIsScrollOnTop(true);
           } else {
-            console.log(false);
             setIsScrollOnTop(false);
           }
         }}
@@ -276,6 +254,39 @@ export default function Homepage(): ReactElement {
           },
         ]}
       />
+			<Drawer
+        hideBackdrop={true}
+        anchor="right"
+				open={isDetailOpen}
+        className={classes.detailDrawer}
+			>
+        <div style={{display: 'flex'}}>
+          <div style={{flexGrow: 1}} />
+          <div>
+            <IconButton
+              aria-label="Close"
+              onClick={(): void => {
+                setIsDetailOpen(false);
+                setCurrentDetailLog(undefined);
+              }}
+            >
+              <CloseIcon />
+            </IconButton>
+          </div>
+        </div>
+        <ReactJson
+          // eslint-disable-next-line @typescript-eslint/ban-types
+          src={currentDetailLog as object}
+          name={false}
+          theme="monokai"
+          displayDataTypes={false}
+          displayObjectSize={false}
+          enableClipboard={false}
+          style={{ flexGrow: 1, padding: 20 }}
+          quotesOnKeys={false}
+        />
+			</Drawer>
+
     </Paper>
   );
 }
