@@ -18,7 +18,10 @@ export class WonlogWebSocketServer extends WonWebSocketServer {
   protected onBroadcast(buffer: Buffer): string {
     const incomingLogs: IncomingLog[] = JSON.parse(buffer.toString());
     const outgoingLogs: OutgoingLog[] = [];
-    for (const { streamID, logXRefID, timestamp, data } of incomingLogs) {
+    for (const {
+      wonlogMetadata: { streamID, logXRefID, timestamp },
+      data,
+    } of incomingLogs) {
       if (streamSeqID.has(streamID)) {
         streamSeqID.set(streamID, Number(streamSeqID.get(streamID)) + 1);
       } else {
@@ -26,14 +29,16 @@ export class WonlogWebSocketServer extends WonWebSocketServer {
       }
 
       outgoingLogs.push({
-        ...data,
-        message: data.message as string,
         wonlogMetadata: {
           seqID: streamSeqID.get(streamID) as number,
           streamID,
           logXRefID,
           timestamp,
           propertyNames: Object.keys(data),
+        },
+        data: {
+          ...data,
+          message: data.message as string,
         },
       });
     }

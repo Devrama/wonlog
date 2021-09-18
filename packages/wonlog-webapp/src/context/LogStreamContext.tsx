@@ -6,27 +6,27 @@ import {
   useGlobalConfig,
   GlobalConfigActionType,
   GlobalConfigSetSearchModePayload,
+  GlobalConfigSetLogSortingPayload,
 } from './GlobalConfigContext';
 
 type IncomingLog = HydratedLog;
 
 export interface LogData {
-  _seqID: number
-  _streamID: string
-  _logXRefID: string
-  _timestamp: number
-  _datetime: string
-  _raw: string
-  message: string
-  [key: string]: unknown
+  wonlogMetadata: IncomingLog['wonlogMetadata'] & {
+    datetime: string;
+    raw: string;
+  };
+  data: {
+    message: string;
+    [key: string]: unknown;
+  };
 }
 
 export interface CurrentStream {
-  streamID?: string
-  logs: LogData[]
+  streamID?: string;
+  logs: LogData[];
 }
 
-const MAX_BUFFER = 1000;
 const LogStreamContext = createContext<CurrentStream>({ logs: []});
 
 // Create WebSocket connection.
@@ -36,6 +36,9 @@ let _filteredStreamLog: Map<string, { isContextUpdated: boolean, logs: LogData[]
 let _intervalID: NodeJS.Timeout | null = null;
 let _currentStreamID: string | undefined;
 let _searchKeyword: string | undefined;
+let _logBufferSize: number = Number(process.env.REACT_APP_LOG_BUFFER_SIZE) as number;
+let _logSorting: GlobalConfigSetLogSortingPayload = GlobalConfigSetLogSortingPayload.DESC;
+let _isSortingChanged = false;
 let _searchMode: GlobalConfigSetSearchModePayload;
 
 const hasText = (text: string, _searchKeyword: string): boolean => {
@@ -52,6 +55,9 @@ const useLogStreamWebSocket = (): CurrentStream => {
   _currentStreamID = globalConfig.currentStreamID;
   _searchKeyword = globalConfig.searchKeyword;
   _searchMode = globalConfig.searchMode;
+  _logBufferSize = globalConfig.logBufferSize;
+  _logSorting = globalConfig.logSorting;
+  _isSortingChanged = _logSorting !== globalConfig.logSorting;
 
   const connectWebSocket = (): void => {
     let hasLogsToRender = false;
@@ -70,7 +76,8 @@ const useLogStreamWebSocket = (): CurrentStream => {
     // Listen for messages
     _socket.addEventListener('message', function(event) {
       const incomingLogs: IncomingLog[] = JSON.parse(event.data);
-      for(const { wonlogMetadata: { seqID, streamID, logXRefID, timestamp, propertyNames }, message, ...rest } of incomingLogs) {
+      for(const { wonlogMetadata, data } of incomingLogs) {
+        const streamID = wonlogMetadata.streamID;
         let logs: LogData[] = [];
         let filteredLogs: LogData[] = [];
         if(_streamLog.has(streamID)) {
@@ -80,27 +87,41 @@ const useLogStreamWebSocket = (): CurrentStream => {
           filteredLogs = _filteredStreamLog.get(streamID)?.logs ?? [];
         }
 
-        const dateTime: string = format(fromUnixTime(Math.floor(timestamp/1000)), 'yyyy-MM-dd HH:mm:ss');
+        const datetime: string = format(fromUnixTime(Math.floor(wonlogMetadata.timestamp/1000)), 'yyyy-MM-dd HH:mm:ss');
         const logData: LogData = {
-          _seqID: seqID,
-          _streamID: streamID,
-          _logXRefID: logXRefID,
-          _timestamp: timestamp,
-          _datetime: dateTime,
-          _raw: JSON.stringify([dateTime, message, { ...rest }]),
-          message,
-          ...rest,
+          wonlogMetadata: {
+            ...wonlogMetadata,
+            datetime,
+            raw: JSON.stringify(data),
+          },
+          data,
         };
 
-        logs.unshift(logData);
-        if(logs.length > MAX_BUFFER) {
-          logs.pop();
+        if(_isSortingChanged) {
+          logs.reverse();
+        }
+        if(_logSorting === GlobalConfigSetLogSortingPayload.DESC) {
+          logs.unshift(logData);
+        } else {
+          logs.push(logData);
         }
 
-        if(_searchKeyword && hasText(logData._raw, _searchKeyword) && _filteredStreamLog?.has(streamID)) {
-          filteredLogs.unshift(logData);
-          if(filteredLogs.length > MAX_BUFFER) {
-            filteredLogs.pop();
+        if(logs.length > _logBufferSize) {
+          logs.splice(_logBufferSize - logs.length);
+        }
+
+        if(_searchKeyword && hasText(logData.wonlogMetadata.raw, _searchKeyword) && _filteredStreamLog?.has(streamID)) {
+          if(_isSortingChanged) {
+            logs.reverse();
+          }
+          if(_logSorting === GlobalConfigSetLogSortingPayload.DESC) {
+            filteredLogs.unshift(logData);
+          } else {
+            filteredLogs.push(logData);
+          }
+
+          if(filteredLogs.length > _logBufferSize) {
+            filteredLogs.splice(_logBufferSize - filteredLogs.length);
           }
           _filteredStreamLog.set(streamID, { isContextUpdated: false, logs: filteredLogs });
         }
@@ -115,8 +136,8 @@ const useLogStreamWebSocket = (): CurrentStream => {
         const oldProperties = _streamLog.get(streamID)?.propertyNames ?? [];
         let mergedPropertyNames = oldProperties;
 
-        if(!isEqual(oldProperties.sort(), propertyNames.sort())) {
-          mergedPropertyNames = union(oldProperties, propertyNames);
+        if(!isEqual(oldProperties.sort(), logData.wonlogMetadata.propertyNames.sort())) {
+          mergedPropertyNames = union(oldProperties, logData.wonlogMetadata.propertyNames);
           setGlobalConfig({
             type: GlobalConfigActionType.SET_STREAM_PROPERTY_NAMES,
             payload: {
@@ -126,6 +147,9 @@ const useLogStreamWebSocket = (): CurrentStream => {
           });
         }
 
+        if(_isSortingChanged) {
+          _isSortingChanged = false;
+        }
         _streamLog.set(streamID, { isContextUpdated: false, logs, propertyNames: [...mergedPropertyNames] });
         hasLogsToRender = true;
 
@@ -141,7 +165,7 @@ const useLogStreamWebSocket = (): CurrentStream => {
           _filteredStreamLog = new Map<string, { isContextUpdated: boolean, logs: LogData[] }>();
           _streamLog.forEach(({ logs }, streamID) => {
             const currentLogs = logs.filter(log => {
-              return _searchKeyword ? hasText(log._raw, _searchKeyword) : true;
+              return _searchKeyword ? hasText(log.wonlogMetadata.raw, _searchKeyword) : true;
             });
             _filteredStreamLog && _filteredStreamLog.set(streamID, { isContextUpdated: true, logs: currentLogs });
           });

@@ -1,18 +1,22 @@
-export interface AgentLog {
+interface baseMetadata {
   streamID: string;
   logXRefID: string;
   timestamp: number;
+}
+
+export interface AgentLog {
+  wonlogMetadata: baseMetadata;
   data: Record<string, unknown>;
 }
 
 export interface HydratedLog {
-  wonlogMetadata: {
+  wonlogMetadata: baseMetadata & {
     seqID: number;
-    streamID: string;
-    logXRefID: string;
-    timestamp: number;
     propertyNames: string[];
   };
-  message: string;
-  [key: string]: unknown;
+  data: {
+    message: string;
+    level?: string;
+    [key: string]: unknown;
+  };
 }

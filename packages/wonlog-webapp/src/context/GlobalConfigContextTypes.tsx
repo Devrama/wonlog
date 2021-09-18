@@ -4,7 +4,9 @@ export enum GlobalConfigActionType {
   SET_SEARCH_KEYWORD = 'SET_SEARCH_KEYWORD',
   SET_SEARCH_MODE = 'SET_SEARCH_MODE',
   SET_DARKMODE = 'SET_DARKMODE',
+  SET_LOG_SORTING = 'SET_LOG_SORTING',
   ADD_STREAM_ID = 'ADD_STREAM_ID',
+  SET_LOG_BUFFER_SIZE = 'SER_BUFFER_SIZE',
   SET_STREAM_PROPERTY_NAMES = 'SET_STREAM_PROPERTY_NAMES',
 }
 
@@ -19,7 +21,12 @@ export enum GlobalConfigSetDarkmodePayload {
   LIGHT = 'light',
   DARK = 'dark',
 }
+export enum GlobalConfigSetLogSortingPayload {
+  DESC = 'desc',
+  ASC = 'asc',
+}
 type GlobalConfigAddStreamIDPayload = string
+type GlobalConfigSetLogBufferSizePayload = number
 
 interface GlobalConfigStreamPropertyNamesPayload {
   [streamID: string]: string[]
@@ -42,9 +49,17 @@ interface GlobalConfigSetDarkmodeAction {
   type: GlobalConfigActionType.SET_DARKMODE
   payload: GlobalConfigSetDarkmodePayload
 }
+interface GlobalConfigSetLogSortingAction {
+  type: GlobalConfigActionType.SET_LOG_SORTING
+  payload: GlobalConfigSetLogSortingPayload
+}
 interface GlobalConfigAddStreamIDAction {
   type: GlobalConfigActionType.ADD_STREAM_ID
   payload: GlobalConfigAddStreamIDPayload
+}
+interface GlobalConfigSetLogBufferSizeAction {
+  type: GlobalConfigActionType.SET_LOG_BUFFER_SIZE
+  payload: GlobalConfigSetLogBufferSizePayload
 }
 interface GlobalConfigStreamPropertyNamesAction {
   type: GlobalConfigActionType.SET_STREAM_PROPERTY_NAMES
@@ -56,7 +71,9 @@ export type GlobalConfigAction =
   | GlobalConfigSetSearchKeywordAction
   | GlobalConfigSetSearchModeAction
   | GlobalConfigSetDarkmodeAction
+  | GlobalConfigSetLogSortingAction
   | GlobalConfigAddStreamIDAction
+  | GlobalConfigSetLogBufferSizeAction
   | GlobalConfigStreamPropertyNamesAction
 
 export interface GlobalConfigState {
@@ -64,6 +81,8 @@ export interface GlobalConfigState {
   searchKeyword?: GlobalConfigSetSearchKeywordPayload
   searchMode: GlobalConfigSetSearchModePayload
   darkmode: GlobalConfigSetDarkmodePayload
+  logSorting: GlobalConfigSetLogSortingPayload
   streamIDs: GlobalConfigAddStreamIDPayload[]
+  logBufferSize: GlobalConfigSetLogBufferSizePayload
   streamPropertyNames: GlobalConfigStreamPropertyNamesPayload
 }

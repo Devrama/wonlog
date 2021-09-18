@@ -1,13 +1,26 @@
 import React, { ReactElement, useContext, useState } from 'react';
+import { get } from 'lodash';
 import clsx from 'clsx';
 import ReactJson from 'react-json-view';
 import { makeStyles } from '@material-ui/core/styles';
 import TableCell from '@material-ui/core/TableCell';
 import Paper from '@material-ui/core/Paper';
 import Drawer from '@material-ui/core/Drawer';
-import { AutoSizer, Column, Table, TableCellRenderer, TableHeaderProps, RowMouseEventHandlerParams, ScrollEventData } from 'react-virtualized';
+import {
+  AutoSizer,
+  Column,
+  Table,
+  TableCellRenderer,
+  TableHeaderProps,
+  RowMouseEventHandlerParams,
+  ScrollEventData,
+} from 'react-virtualized';
 import { LogStreamContext, LogData } from '../context/LogStreamContext';
-import { GlobalConfigSetDarkmodePayload } from '../context/GlobalConfigContext';
+import {
+  useGlobalConfig,
+  GlobalConfigSetDarkmodePayload,
+  GlobalConfigSetLogSortingPayload,
+} from '../context/GlobalConfigContext';
 import IconButton from '@material-ui/core/IconButton';
 import CloseIcon from '@material-ui/icons/Close';
 
@@ -35,9 +48,9 @@ interface VirtualizedTableProps  {
 const useStyles = makeStyles((theme) => ({
   detailDrawer: {
     inset: 'unset !important',
-    '& .MuiDrawer-paper': {
-      width: 'calc(100% - 500px)',
-    },
+  },
+  detailDrawerPaper: {
+    width: 'calc(100% - 500px)',
   },
   flexContainer: {
     display: 'flex',
@@ -133,18 +146,19 @@ const VirtualizedTable:React.FC<VirtualizedTableProps> = ({
 
   const cellRenderer: TableCellRenderer = ({ rowData, cellData, columnIndex }) => {
     const isFirstColmun = columnIndex === 0;
+    const level = get(rowData, 'data.level');
     return (
       <TableCell
         component="div"
         className={clsx(classes.tableCell, classes.flexContainer, {
           [classes.noClick]: onRowClick == null,
-          [classes.levelDefault]: isFirstColmun && !rowData.level,
-          [classes.levelCritical]: isFirstColmun && (rowData.level == 'critical' || rowData.level == 'fatal'),
-          [classes.levelError]: isFirstColmun && rowData.level == 'error',
-          [classes.levelWarn]: isFirstColmun && (rowData.level == 'warn' || rowData.level == 'warning'),
-          [classes.levelInfo]: isFirstColmun && rowData.level == 'info',
-          [classes.levelDebug]: isFirstColmun && rowData.level == 'debug',
-          [classes.levelTrace]: isFirstColmun && rowData.level == 'trace',
+          [classes.levelDefault]: isFirstColmun && !level,
+          [classes.levelCritical]: isFirstColmun && (level == 'critical' || level == 'fatal'),
+          [classes.levelError]: isFirstColmun && level == 'error',
+          [classes.levelWarn]: isFirstColmun && (level == 'warn' || level == 'warning'),
+          [classes.levelInfo]: isFirstColmun && level == 'info',
+          [classes.levelDebug]: isFirstColmun && level == 'debug',
+          [classes.levelTrace]: isFirstColmun && level == 'trace',
         })}
         variant="body"
         style={{ height: rowHeight }}
@@ -196,6 +210,7 @@ const VirtualizedTable:React.FC<VirtualizedTableProps> = ({
                     columnIndex: index,
                   })
                 }
+                cellDataGetter={({ dataKey, rowData }): string => get(rowData, dataKey) }
                 className={classes.flexContainer}
                 cellRenderer={cellRenderer}
                 dataKey={dataKey}
@@ -213,14 +228,19 @@ let oldLogsOnScreen: LogData[] = [];
 
 export default function Homepage(): ReactElement {
   const classes = useStyles();
+  const { globalConfig } = useGlobalConfig();
   const { logs } = useContext(LogStreamContext);
-  const [isScrollOnTop, setIsScrollOnTop] = useState(true);
+  const [isScrollOnEdge, setIsScrollOnEdge] = useState(true);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [currentDetailLog, setCurrentDetailLog] = useState<LogData>();
 
-  if(!isScrollOnTop && oldLogsOnScreen.length === 0) {
+  if(!isScrollOnEdge && oldLogsOnScreen.length === 0) {
     oldLogsOnScreen = [...logs];
-  } else if(isScrollOnTop && oldLogsOnScreen.length > 0) {
+  } else if(isScrollOnEdge && oldLogsOnScreen.length > 0) {
+    oldLogsOnScreen = [];
+  }
+
+  if(globalConfig.logSorting === GlobalConfigSetLogSortingPayload.ASC && oldLogsOnScreen.length > 0) {
     oldLogsOnScreen = [];
   }
 
@@ -234,22 +254,25 @@ export default function Homepage(): ReactElement {
           setCurrentDetailLog(rowData);
         }}
         onScroll={({ scrollTop }): void => {
-          if(scrollTop === 0) {
-            setIsScrollOnTop(true);
-          } else {
-            setIsScrollOnTop(false);
+          // ASC does not matter with scrolling as it grows at the end.
+          if(globalConfig.logSorting === GlobalConfigSetLogSortingPayload.DESC) {
+            if(scrollTop === 0) {
+              setIsScrollOnEdge(true);
+            } else {
+              setIsScrollOnEdge(false);
+            }
           }
         }}
         columns={[
           {
             width: 150,
-            label: 'DateTime',
-            dataKey: '_datetime',
+            label: 'Timestamp',
+            dataKey: 'wonlogMetadata.datetime',
           },
           {
             width: 400,
             label: 'Message',
-            dataKey: 'message',
+            dataKey: 'data.message',
             numeric: false,
           },
         ]}
@@ -259,6 +282,7 @@ export default function Homepage(): ReactElement {
         anchor="right"
 				open={isDetailOpen}
         className={classes.detailDrawer}
+        classes={{ paper: classes.detailDrawerPaper }}
 			>
         <div style={{display: 'flex'}}>
           <div style={{flexGrow: 1}} />
@@ -276,9 +300,9 @@ export default function Homepage(): ReactElement {
         </div>
         <ReactJson
           // eslint-disable-next-line @typescript-eslint/ban-types
-          src={currentDetailLog as object}
+          src={{ timestamp: currentDetailLog?.wonlogMetadata.datetime, ...currentDetailLog?.data } as object}
           name={false}
-          theme="monokai"
+          theme={globalConfig.darkmode === GlobalConfigSetDarkmodePayload.DARK ? 'monokai' : 'rjv-default'}
           displayDataTypes={false}
           displayObjectSize={false}
           enableClipboard={false}

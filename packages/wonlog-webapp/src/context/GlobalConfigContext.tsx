@@ -4,20 +4,24 @@ import {
   GlobalConfigAction,
   GlobalConfigState,
   GlobalConfigSetDarkmodePayload,
+  GlobalConfigSetLogSortingPayload,
   GlobalConfigSetSearchModePayload,
 } from './GlobalConfigContextTypes';
 
 const LOCAL_STORAGE = {
   DARK_MODE: 'wonlog.darkmode',
+  LOG_SORTING: 'wonlog.logSorting',
   SEARCH_MODE: 'wonlog.searchMode',
+  LOG_BUFFER_SIZE: 'wonlog.logBufferSize',
 };
-
 const initialState: GlobalConfigState = {
   currentStreamID: undefined,
   searchKeyword: undefined,
   searchMode: (window.localStorage.getItem(LOCAL_STORAGE.SEARCH_MODE) ?? GlobalConfigSetSearchModePayload.TEXT) as GlobalConfigSetSearchModePayload,
   darkmode: (window.localStorage.getItem(LOCAL_STORAGE.DARK_MODE) ?? GlobalConfigSetDarkmodePayload.LIGHT) as GlobalConfigSetDarkmodePayload,
+  logSorting: (window.localStorage.getItem(LOCAL_STORAGE.LOG_SORTING) ?? GlobalConfigSetLogSortingPayload.DESC) as GlobalConfigSetLogSortingPayload,
   streamIDs: [],
+  logBufferSize: Number(window.localStorage.getItem(LOCAL_STORAGE.LOG_BUFFER_SIZE) ?? process.env.REACT_APP_LOG_BUFFER_SIZE),
   streamPropertyNames: {},
 };
 
@@ -45,10 +49,22 @@ const globalConfigReducer = (state: GlobalConfigState, action: GlobalConfigActio
         ...state,
         darkmode: action.payload,
       };
+    case GlobalConfigActionType.SET_LOG_SORTING:
+      window.localStorage.setItem(LOCAL_STORAGE.LOG_SORTING, action.payload);
+      return {
+        ...state,
+        logSorting: action.payload,
+      };
     case GlobalConfigActionType.ADD_STREAM_ID:
       return {
         ...state,
         streamIDs: state.streamIDs.includes(action.payload) ? state.streamIDs : [...state.streamIDs, action.payload],
+      };
+    case GlobalConfigActionType.SET_LOG_BUFFER_SIZE:
+      window.localStorage.setItem(LOCAL_STORAGE.LOG_BUFFER_SIZE, action.payload.toString());
+      return {
+        ...state,
+        logBufferSize: action.payload,
       };
     case GlobalConfigActionType.SET_STREAM_PROPERTY_NAMES:
       return {
@@ -94,5 +110,6 @@ export {
   useGlobalConfig,
   GlobalConfigActionType,
   GlobalConfigSetDarkmodePayload,
+  GlobalConfigSetLogSortingPayload,
   GlobalConfigSetSearchModePayload,
 };

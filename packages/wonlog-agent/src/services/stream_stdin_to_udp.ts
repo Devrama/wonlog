@@ -39,9 +39,11 @@ const timer = setInterval((): void => {
 
 process.stdin.pipe(split2()).on('data', function (textLog) {
   const hydratedLog: AgentLog = {
-    streamID: _options.streamName,
-    logXRefID: nanoid(),
-    timestamp: Date.now(),
+    wonlogMetadata: {
+      streamID: _options.streamName,
+      logXRefID: nanoid(),
+      timestamp: Date.now(),
+    },
     data: {},
   };
   let isJson = true;
@@ -53,10 +55,12 @@ process.stdin.pipe(split2()).on('data', function (textLog) {
     isJson = false;
   }
   if (isJson && typeof parsedLog?.timestamp === 'number') {
-    hydratedLog.timestamp = parsedLog.timestamp;
+    hydratedLog.wonlogMetadata.timestamp = parsedLog.timestamp;
   } else if (isJson && typeof parsedLog?.timestamp === 'string') {
     const parsedTime = parseISO(parsedLog.timestamp).getTime();
-    hydratedLog.timestamp = isNaN(parsedTime) ? Date.now() : parsedTime;
+    hydratedLog.wonlogMetadata.timestamp = isNaN(parsedTime)
+      ? Date.now()
+      : parsedTime;
   }
 
   hydratedLog.data = parsedLog ?? { message: textLog };

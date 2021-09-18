@@ -16,6 +16,12 @@ import Brightness5Icon from '@material-ui/icons/Brightness5';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
+import Chip from '@material-ui/core/Chip';
+import Popover from '@material-ui/core/Popover';
+import TextField from '@material-ui/core/TextField';
+import Box from '@material-ui/core/Box';
+import FormControl from '@material-ui/core/FormControl';
+import FormHelperText from '@material-ui/core/FormHelperText';
 import ToggleButton from '@material-ui/lab/ToggleButton';
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 import InputBase from '@material-ui/core/InputBase';
@@ -24,11 +30,13 @@ import Switch from '@material-ui/core/Switch';
 import InfoIcon from '@material-ui/icons/Info';
 import SearchIcon from '@material-ui/icons/Search';
 import SettingsIcon from '@material-ui/icons/Settings';
+import SortIcon from '@material-ui/icons/Sort';
 import LibraryBooksIcon from '@material-ui/icons/LibraryBooks';
 import {
   useGlobalConfig,
   GlobalConfigActionType,
   GlobalConfigSetDarkmodePayload,
+  GlobalConfigSetLogSortingPayload,
   GlobalConfigSetSearchModePayload,
 } from '../../context/GlobalConfigContext';
 
@@ -116,7 +124,7 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   searchIcon: {
-    padding: theme.spacing(0, 2),
+    padding: theme.spacing(0, 1),
     height: '100%',
     position: 'absolute',
     pointerEvents: 'none',
@@ -124,11 +132,17 @@ const useStyles = makeStyles((theme) => ({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  searchChip: {
+    position: 'absolute',
+    zIndex: 1,
+    right: 10,
+    bottom: 1,
+  },
   inputRoot: {
     color: 'inherit',
   },
   inputInput: {
-    padding: theme.spacing(1, 1, 1, 0),
+    padding: theme.spacing(1, 2, 1, 0),
     // vertical padding + font size from searchIcon
     paddingLeft: `calc(1em + ${theme.spacing(4)}px)`,
     transition: theme.transitions.create('width'),
@@ -137,20 +151,30 @@ const useStyles = makeStyles((theme) => ({
       width: '20ch',
     },
   },
+  settingPopover: {
+    width: 300,
+    height: 230,
+    padding: theme.spacing(2, 2),
+    borderRadius: theme.shape.borderRadius,
+  },
 }));
 
 const LeftMenu:React.FC = () => {
   const classes = useStyles();
   const theme = useTheme();
   const { globalConfig, setGlobalConfig } = useGlobalConfig();
-  const [open, setOpen] = React.useState(true);
+  const [openMenu, setOpenMenu] = React.useState(true);
+  const [openSetting, setOpenSetting] = React.useState(false);
+  const [openSettingAnchorEl, setOpenSettingAnchorEl] = React.useState<HTMLButtonElement>();
 
-  const handleDrawerOpen = ():void => {
-    setOpen(true);
+  const [searchInputValue, setSearchInputValue] = React.useState('');
+
+  const handleMenuOpen = ():void => {
+    setOpenMenu(true);
   };
 
-  const handleDrawerClose = ():void => {
-    setOpen(false);
+  const handleMenuClose = ():void => {
+    setOpenMenu(false);
   };
 
   return (
@@ -158,17 +182,17 @@ const LeftMenu:React.FC = () => {
       <AppBar
         position="fixed"
         className={clsx(classes.appBar, {
-          [classes.appBarShift]: open,
+          [classes.appBarShift]: openMenu,
         })}
       >
         <Toolbar>
           <IconButton
             color="inherit"
             aria-label="open drawer"
-            onClick={handleDrawerOpen}
+            onClick={handleMenuOpen}
             edge="start"
             className={clsx(classes.menuButton, {
-              [classes.hide]: open,
+              [classes.hide]: openMenu,
             })}
           >
             <MenuIcon />
@@ -178,26 +202,45 @@ const LeftMenu:React.FC = () => {
             <div className={classes.searchIcon}>
               <SearchIcon />
             </div>
+            <Chip
+              className={clsx(classes.searchChip, {
+                [classes.hide]: !globalConfig.searchKeyword,
+              })}
+              color="primary"
+              label={globalConfig.searchKeyword}
+              onDelete={():void => {
+                setGlobalConfig({
+                  type: GlobalConfigActionType.SET_SEARCH_KEYWORD,
+                  payload: '',
+                });
+              }}
+            />
             <InputBase
+              value={searchInputValue}
               placeholder="Search…"
               classes={{
                 root: classes.inputRoot,
                 input: classes.inputInput,
               }}
               inputProps={{ 'aria-label': 'search' }}
-              onFocus={(): void => {
+              onChange={(e): void => {
+                setSearchInputValue(e.target.value);
+              }}
+              onFocus={(e): void => {
                 setGlobalConfig({
                   type: GlobalConfigActionType.SET_SEARCH_KEYWORD,
                   payload: '',
                 });
+                e.target.value='';
               }}
               onKeyDown={(e): void => {
-                if(e.key === 'Enter') {
+                if(e.key.toLowerCase() === 'enter') {
                   setGlobalConfig({
                     type: GlobalConfigActionType.SET_SEARCH_KEYWORD,
                     payload: e.currentTarget.value,
                   });
                   e.currentTarget.blur();
+                  setSearchInputValue('');
                 }
               }}
               onBlur={(e): void => {
@@ -205,6 +248,7 @@ const LeftMenu:React.FC = () => {
                   type: GlobalConfigActionType.SET_SEARCH_KEYWORD,
                   payload: e.target.value,
                 });
+                setSearchInputValue('');
               }}
             />
           </div>
@@ -240,27 +284,91 @@ const LeftMenu:React.FC = () => {
             <IconButton aria-label="Info">
               <InfoIcon />
             </IconButton>
-            <IconButton aria-label="Settings">
+            <IconButton
+              aria-label="Settings"
+              onClick={(e): void => {
+                setOpenSetting(true);
+                setOpenSettingAnchorEl(e.currentTarget);
+              }}
+            >
               <SettingsIcon />
             </IconButton>
+							<Popover
+                open={openSetting}
+                classes={{
+                  paper: classes.settingPopover
+                }}
+                anchorEl={openSettingAnchorEl}
+								anchorOrigin={{
+									vertical: 'bottom',
+									horizontal: 'right',
+								}}
+								transformOrigin={{
+									vertical: 'top',
+									horizontal: 'right',
+								}}
+                onClose={(): void => {
+                  setOpenSetting(false);
+                }}
+							>
+                <Typography variant="h6">Settings</Typography>
+                <Box component="form">
+                  <FormControl margin="dense">
+                    <FormHelperText>Maximum Buffer Size</FormHelperText>
+                    <TextField
+                      defaultValue={globalConfig.logBufferSize}
+                      variant="outlined"
+                      size="small"
+                      type="number"
+                      onBlur={(e): void => {
+                        setGlobalConfig({
+                          type: GlobalConfigActionType.SET_LOG_BUFFER_SIZE,
+                          payload: Number.parseInt(e.target.value, 10),
+                        });
+                      }}
+                    />
+                  </FormControl>
+                  <FormControl margin="dense">
+                    <FormHelperText>Sorting</FormHelperText>
+                    <ToggleButtonGroup
+                        value={globalConfig.logSorting}
+                        exclusive
+                        onChange={(event, orderBy): void => {
+                          setGlobalConfig({
+                            type: GlobalConfigActionType.SET_LOG_SORTING,
+                            payload: orderBy,
+                          });
+                        }}
+                        aria-label="text alignment"
+                    >
+                      <ToggleButton value={GlobalConfigSetLogSortingPayload.DESC} aria-label={GlobalConfigSetLogSortingPayload.DESC}>
+                        <SortIcon />
+                      </ToggleButton>
+                      <ToggleButton value={GlobalConfigSetLogSortingPayload.ASC} aria-label={GlobalConfigSetLogSortingPayload.ASC}>
+                        <SortIcon style={{ transform: 'rotate( 180deg)' }} />
+                      </ToggleButton>
+                    </ToggleButtonGroup>
+                  </FormControl>
+                </Box>
+							</Popover>
           </div>
         </Toolbar>
       </AppBar>
       <Drawer
         variant="permanent"
         className={clsx(classes.drawer, {
-          [classes.drawerOpen]: open,
-          [classes.drawerClose]: !open,
+          [classes.drawerOpen]: openMenu,
+          [classes.drawerClose]: !openMenu,
         })}
         classes={{
           paper: clsx({
-            [classes.drawerOpen]: open,
-            [classes.drawerClose]: !open,
+            [classes.drawerOpen]: openMenu,
+            [classes.drawerClose]: !openMenu,
           }),
         }}
       >
         <div className={classes.toolbar}>
-          <IconButton onClick={handleDrawerClose}>
+          <IconButton onClick={handleMenuClose}>
             {theme.direction === 'rtl' ? <ChevronRightIcon /> : <ChevronLeftIcon />}
           </IconButton>
         </div>
