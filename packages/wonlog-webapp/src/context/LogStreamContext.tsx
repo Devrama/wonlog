@@ -43,7 +43,7 @@ let _searchMode: GlobalConfigSetSearchModePayload;
 
 const hasText = (text: string, _searchKeyword: string): boolean => {
   if(_searchMode === GlobalConfigSetSearchModePayload.TEXT) {
-    return text.includes(_searchKeyword);
+    return new RegExp(_searchKeyword.replace(/[-\/\\^$*+?.()|[\]{}]/, '\\$&'), 'i').test(text);
   } else {
     return new RegExp(_searchKeyword).test(text);
   }
@@ -56,8 +56,8 @@ const useLogStreamWebSocket = (): CurrentStream => {
   _searchKeyword = globalConfig.searchKeyword;
   _searchMode = globalConfig.searchMode;
   _logBufferSize = globalConfig.logBufferSize;
-  _logSorting = globalConfig.logSorting;
   _isSortingChanged = _logSorting !== globalConfig.logSorting;
+  _logSorting = globalConfig.logSorting;
 
   const connectWebSocket = (): void => {
     let hasLogsToRender = false;
@@ -97,9 +97,6 @@ const useLogStreamWebSocket = (): CurrentStream => {
           data,
         };
 
-        if(_isSortingChanged) {
-          logs.reverse();
-        }
         if(_logSorting === GlobalConfigSetLogSortingPayload.DESC) {
           logs.unshift(logData);
         } else {
@@ -111,9 +108,6 @@ const useLogStreamWebSocket = (): CurrentStream => {
         }
 
         if(_searchKeyword && hasText(logData.wonlogMetadata.raw, _searchKeyword) && _filteredStreamLog?.has(streamID)) {
-          if(_isSortingChanged) {
-            logs.reverse();
-          }
           if(_logSorting === GlobalConfigSetLogSortingPayload.DESC) {
             filteredLogs.unshift(logData);
           } else {
@@ -147,9 +141,6 @@ const useLogStreamWebSocket = (): CurrentStream => {
           });
         }
 
-        if(_isSortingChanged) {
-          _isSortingChanged = false;
-        }
         _streamLog.set(streamID, { isContextUpdated: false, logs, propertyNames: [...mergedPropertyNames] });
         hasLogsToRender = true;
 
@@ -220,10 +211,53 @@ const useLogStreamWebSocket = (): CurrentStream => {
   }, [globalConfig.searchKeyword, globalConfig.searchMode]);
 
   useEffect(() => {
-    if(_currentStreamID) {
-      setCurrentLogs({ streamID: _currentStreamID, logs: _streamLog.get(_currentStreamID)?.logs ?? [] });
-    }
+    _filteredStreamLog = null;
   }, [_currentStreamID]);
+
+  useEffect(() => {
+    _streamLog.forEach(({ logs }) => {
+      logs.splice(_logBufferSize - logs.length);
+    });
+    if(_filteredStreamLog && _currentStreamID) {
+      const filteredLogs = _filteredStreamLog.get(_currentStreamID)?.logs;
+      filteredLogs && filteredLogs.splice(_logBufferSize - filteredLogs.length);
+    }
+  }, [_logBufferSize]);
+
+  useEffect(() => {
+    if(!_searchKeyword && _currentStreamID) {
+      setCurrentLogs({ streamID: _currentStreamID, logs: _streamLog.get(_currentStreamID)?.logs ?? [] });
+    } if(_searchKeyword && _currentStreamID && _filteredStreamLog) {
+      setCurrentLogs({ streamID: _currentStreamID, logs: _filteredStreamLog.get(_currentStreamID)?.logs ?? [] });
+    } if(_searchKeyword && _currentStreamID && !_filteredStreamLog) {
+      _filteredStreamLog = new Map<string, { isContextUpdated: boolean, logs: LogData[] }>();
+      _streamLog.forEach(({ logs }, streamID) => {
+        const currentLogs = logs.filter(log => {
+          return _searchKeyword ? hasText(log.wonlogMetadata.raw, _searchKeyword) : true;
+        });
+        _filteredStreamLog && _filteredStreamLog.set(streamID, { isContextUpdated: true, logs: currentLogs });
+      });
+      setCurrentLogs({ streamID: _currentStreamID, logs: _filteredStreamLog.get(_currentStreamID)?.logs ?? [] });
+    }
+  }, [_currentStreamID, _searchKeyword]);
+
+  useEffect(() => {
+    if(_currentStreamID) {
+      if(_isSortingChanged) {
+        _streamLog.forEach(({ logs }) => {
+          logs.reverse();
+        });
+        _filteredStreamLog && _filteredStreamLog.get(_currentStreamID)?.logs.reverse();
+        _isSortingChanged = false;
+      }
+
+      if(_searchKeyword && _filteredStreamLog) {
+        setCurrentLogs({ streamID: _currentStreamID, logs: _filteredStreamLog.get(_currentStreamID)?.logs ?? [] });
+      } else {
+        setCurrentLogs({ streamID: _currentStreamID, logs: _streamLog.get(_currentStreamID)?.logs ?? [] });
+      }
+    }
+  }, [_isSortingChanged, _logBufferSize]);
 
   useEffect(() => {
     connectWebSocket();

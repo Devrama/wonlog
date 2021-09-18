@@ -81,6 +81,7 @@ const useStyles = makeStyles((theme) => ({
     position: 'relative',
     padding: '0 10px',
     fontWeight: theme.typography.fontWeightLight,
+    /*
     '&::after': {
       bottom: 0,
       color: theme.palette.divider,
@@ -91,6 +92,7 @@ const useStyles = makeStyles((theme) => ({
       position: 'absolute',
       top: 0,
     },
+     */
   },
   noClick: {
     cursor: 'initial',

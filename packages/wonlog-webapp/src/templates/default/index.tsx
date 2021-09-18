@@ -67,8 +67,8 @@ const DefaultTemplate:React.FC<DefaultTemplateProps> = ({ contentComponent }) =>
       wonlog: {
         palette: {
           default: {
-            dark: '#fff2cc',
-            light: '#fff2cc',
+            dark: '#3a3a3a',
+            light: '#cecece',
           },
           critical: {
             dark: '#c00000',

@@ -5,6 +5,7 @@ import Drawer from '@material-ui/core/Drawer';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import List from '@material-ui/core/List';
+import ListSubheader from '@material-ui/core/ListSubheader';
 import Typography from '@material-ui/core/Typography';
 import Divider from '@material-ui/core/Divider';
 import IconButton from '@material-ui/core/IconButton';
@@ -47,6 +48,7 @@ const useStyles = makeStyles((theme) => ({
     display: 'flex',
   },
   appBar: {
+    backgroundColor: '#a74747',
     zIndex: theme.zIndex.drawer + 1,
     transition: theme.transitions.create(['width', 'margin'], {
       easing: theme.transitions.easing.sharp,
@@ -71,6 +73,9 @@ const useStyles = makeStyles((theme) => ({
     width: drawerWidth,
     flexShrink: 0,
     whiteSpace: 'nowrap',
+  },
+  drawerPaper: {
+    backgroundColor: theme.palette.type === GlobalConfigSetDarkmodePayload.DARK ? '#5d1a1a' : '#ffd6d6',
   },
   drawerOpen: {
     width: drawerWidth,
@@ -134,6 +139,7 @@ const useStyles = makeStyles((theme) => ({
   },
   searchChip: {
     position: 'absolute',
+    maxWidth: 190,
     zIndex: 1,
     right: 10,
     bottom: 1,
@@ -361,7 +367,7 @@ const LeftMenu:React.FC = () => {
           [classes.drawerClose]: !openMenu,
         })}
         classes={{
-          paper: clsx({
+          paper: clsx(classes.drawerPaper, {
             [classes.drawerOpen]: openMenu,
             [classes.drawerClose]: !openMenu,
           }),
@@ -373,7 +379,9 @@ const LeftMenu:React.FC = () => {
           </IconButton>
         </div>
         <Divider />
-        <List>
+        <List subheader={
+          <ListSubheader component="div" classes={{ root: clsx({ [classes.hide]: !openMenu })}}>Logs Streams</ListSubheader>
+        }>
           {Array.from(globalConfig.streamIDs).map(streamID => {
             return (
               <ListItem key={streamID} button selected={globalConfig.currentStreamID === streamID} onClick={(): void => { setGlobalConfig({ type: GlobalConfigActionType.SET_CURRENT_STREAM_ID, payload: streamID }); }}>
