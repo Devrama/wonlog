@@ -1,4 +1,4 @@
-import React, { ReactElement, useContext, useState } from 'react';
+import React, { ReactElement, useContext, useState, useEffect } from 'react';
 import { get } from 'lodash';
 import clsx from 'clsx';
 import ReactJson from 'react-json-view';
@@ -226,25 +226,33 @@ const VirtualizedTable:React.FC<VirtualizedTableProps> = ({
   );
 };
 
-let oldLogsOnScreen: LogData[] = [];
-
 export default function Homepage(): ReactElement {
   const classes = useStyles();
   const { globalConfig } = useGlobalConfig();
   const { logs } = useContext(LogStreamContext);
   const [isScrollOnEdge, setIsScrollOnEdge] = useState(true);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [oldLogsOnScreen, setOldLogsOnScreen] = useState<LogData[]>([]);
   const [currentDetailLog, setCurrentDetailLog] = useState<LogData>();
 
   if(!isScrollOnEdge && oldLogsOnScreen.length === 0) {
-    oldLogsOnScreen = [...logs];
+    setOldLogsOnScreen([...logs]);
   } else if(isScrollOnEdge && oldLogsOnScreen.length > 0) {
-    oldLogsOnScreen = [];
+    setOldLogsOnScreen([]);
   }
 
   if(globalConfig.logSorting === GlobalConfigSetLogSortingPayload.ASC && oldLogsOnScreen.length > 0) {
-    oldLogsOnScreen = [];
+    setOldLogsOnScreen([]);
   }
+
+  useEffect(() => {
+    console.log(logs.length);
+    if(globalConfig.searchKeyword && !isScrollOnEdge) {
+      setOldLogsOnScreen([...logs]);
+    } else if(!globalConfig.searchKeyword && !isScrollOnEdge) {
+      setOldLogsOnScreen([]);
+    }
+  }, [globalConfig.searchKeyword, logs.length]); // logs.length is required because filtering happens in LogStreamContext afterwards.
 
   return (
     <Paper style={{ height: '100%', width: '100%' }}>

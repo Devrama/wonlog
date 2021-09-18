@@ -216,11 +216,15 @@ const useLogStreamWebSocket = (): CurrentStream => {
 
   useEffect(() => {
     _streamLog.forEach(({ logs }) => {
-      logs.splice(_logBufferSize - logs.length);
+      if(logs.length > _logBufferSize) {
+        logs.splice(_logBufferSize - logs.length);
+      }
     });
     if(_filteredStreamLog && _currentStreamID) {
       const filteredLogs = _filteredStreamLog.get(_currentStreamID)?.logs;
-      filteredLogs && filteredLogs.splice(_logBufferSize - filteredLogs.length);
+      if(filteredLogs && filteredLogs.length > _logBufferSize) {
+        filteredLogs.splice(_logBufferSize - filteredLogs.length);
+      }
     }
   }, [_logBufferSize]);
 

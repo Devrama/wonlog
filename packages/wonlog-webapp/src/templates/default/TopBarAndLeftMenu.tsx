@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import axios from 'axios';
 import clsx from 'clsx';
 import { alpha, makeStyles, useTheme } from '@material-ui/core/styles';
 import Drawer from '@material-ui/core/Drawer';
@@ -21,6 +22,7 @@ import Chip from '@material-ui/core/Chip';
 import Popover from '@material-ui/core/Popover';
 import TextField from '@material-ui/core/TextField';
 import Box from '@material-ui/core/Box';
+import Badge from '@material-ui/core/Badge';
 import FormControl from '@material-ui/core/FormControl';
 import FormHelperText from '@material-ui/core/FormHelperText';
 import ToggleButton from '@material-ui/lab/ToggleButton';
@@ -163,6 +165,12 @@ const useStyles = makeStyles((theme) => ({
     padding: theme.spacing(2, 2),
     borderRadius: theme.shape.borderRadius,
   },
+  infoPopover: {
+    width: 300,
+    height: 230,
+    padding: theme.spacing(2, 2),
+    borderRadius: theme.shape.borderRadius,
+  },
 }));
 
 const LeftMenu:React.FC = () => {
@@ -172,6 +180,9 @@ const LeftMenu:React.FC = () => {
   const [openMenu, setOpenMenu] = React.useState(true);
   const [openSetting, setOpenSetting] = React.useState(false);
   const [openSettingAnchorEl, setOpenSettingAnchorEl] = React.useState<HTMLButtonElement>();
+  const [openInfo, setOpenInfo] = React.useState(false);
+  const [openInfoAnchorEl, setOpenInfoAnchorEl] = React.useState<HTMLButtonElement>();
+  const [updateNotification, setUpdateNotification] = React.useState<string>();
 
   const [searchInputValue, setSearchInputValue] = React.useState('');
 
@@ -182,6 +193,16 @@ const LeftMenu:React.FC = () => {
   const handleMenuClose = ():void => {
     setOpenMenu(false);
   };
+
+  useEffect(() => {
+    axios.get<{ data: { message: string }}>(`${process.env.REACT_APP_UPDATE_NOTIFICATION_HOST}/api/webapp/v${process.env.REACT_APP_WONLOG_VERSION}/update-notification`)
+      .then((response) => {
+        setUpdateNotification(response.data.data.message);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }, []);
 
   return (
     <>
@@ -272,10 +293,12 @@ const LeftMenu:React.FC = () => {
             value={globalConfig.darkmode}
             exclusive
             onChange={(event, mode): void => {
-              setGlobalConfig({
-                type: GlobalConfigActionType.SET_DARKMODE,
-                payload: mode,
-              });
+              if(mode) {
+                setGlobalConfig({
+                  type: GlobalConfigActionType.SET_DARKMODE,
+                  payload: mode,
+                });
+              }
             }}
             aria-label="text alignment"
           >
@@ -287,9 +310,40 @@ const LeftMenu:React.FC = () => {
             </ToggleButton>
           </ToggleButtonGroup>
           <div>
-            <IconButton aria-label="Info">
-              <InfoIcon />
+            <IconButton
+              aria-label="Info"
+              onClick={(e): void => {
+                setOpenInfo(true);
+                setOpenInfoAnchorEl(e.currentTarget);
+              }}
+            >
+              <Badge badgeContent={updateNotification && 1} color="secondary">
+                <InfoIcon />
+              </Badge>
             </IconButton>
+            <Popover
+              open={openInfo}
+              classes={{
+                paper: classes.infoPopover
+              }}
+              anchorEl={openInfoAnchorEl}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'right',
+              }}
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+              onClose={(): void => {
+                setOpenInfo(false);
+              }}
+            >
+              <Typography variant="h6">Notification</Typography>
+              <Box component="form">
+                <Typography paragraph>{updateNotification}</Typography>
+              </Box>
+            </Popover>
             <IconButton
               aria-label="Settings"
               onClick={(e): void => {
@@ -299,64 +353,66 @@ const LeftMenu:React.FC = () => {
             >
               <SettingsIcon />
             </IconButton>
-							<Popover
-                open={openSetting}
-                classes={{
-                  paper: classes.settingPopover
-                }}
-                anchorEl={openSettingAnchorEl}
-								anchorOrigin={{
-									vertical: 'bottom',
-									horizontal: 'right',
-								}}
-								transformOrigin={{
-									vertical: 'top',
-									horizontal: 'right',
-								}}
-                onClose={(): void => {
-                  setOpenSetting(false);
-                }}
-							>
-                <Typography variant="h6">Settings</Typography>
-                <Box component="form">
-                  <FormControl margin="dense">
-                    <FormHelperText>Maximum Buffer Size</FormHelperText>
-                    <TextField
-                      defaultValue={globalConfig.logBufferSize}
-                      variant="outlined"
-                      size="small"
-                      type="number"
-                      onBlur={(e): void => {
-                        setGlobalConfig({
-                          type: GlobalConfigActionType.SET_LOG_BUFFER_SIZE,
-                          payload: Number.parseInt(e.target.value, 10),
-                        });
-                      }}
-                    />
-                  </FormControl>
-                  <FormControl margin="dense">
-                    <FormHelperText>Sorting</FormHelperText>
-                    <ToggleButtonGroup
-                        value={globalConfig.logSorting}
-                        exclusive
-                        onChange={(event, orderBy): void => {
+            <Popover
+              open={openSetting}
+              classes={{
+                paper: classes.settingPopover
+              }}
+              anchorEl={openSettingAnchorEl}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'right',
+              }}
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+              onClose={(): void => {
+                setOpenSetting(false);
+              }}
+            >
+              <Typography variant="h6">Settings</Typography>
+              <Box component="form">
+                <FormControl margin="dense">
+                  <FormHelperText>Maximum Buffer Size</FormHelperText>
+                  <TextField
+                    defaultValue={globalConfig.logBufferSize}
+                    variant="outlined"
+                    size="small"
+                    type="number"
+                    onBlur={(e): void => {
+                      setGlobalConfig({
+                        type: GlobalConfigActionType.SET_LOG_BUFFER_SIZE,
+                        payload: Number.parseInt(e.target.value, 10),
+                      });
+                    }}
+                  />
+                </FormControl>
+                <FormControl margin="dense">
+                  <FormHelperText>Sorting</FormHelperText>
+                  <ToggleButtonGroup
+                      value={globalConfig.logSorting}
+                      exclusive
+                      onChange={(event, orderBy): void => {
+                        if(orderBy) {
                           setGlobalConfig({
                             type: GlobalConfigActionType.SET_LOG_SORTING,
                             payload: orderBy,
                           });
-                        }}
-                        aria-label="text alignment"
-                    >
-                      <ToggleButton value={GlobalConfigSetLogSortingPayload.DESC} aria-label={GlobalConfigSetLogSortingPayload.DESC}>
-                        <SortIcon />
-                      </ToggleButton>
-                      <ToggleButton value={GlobalConfigSetLogSortingPayload.ASC} aria-label={GlobalConfigSetLogSortingPayload.ASC}>
-                        <SortIcon style={{ transform: 'rotate( 180deg)' }} />
-                      </ToggleButton>
-                    </ToggleButtonGroup>
-                  </FormControl>
-                </Box>
-							</Popover>
+                        }
+                      }}
+                      aria-label="text alignment"
+                  >
+                    <ToggleButton value={GlobalConfigSetLogSortingPayload.DESC} aria-label={GlobalConfigSetLogSortingPayload.DESC}>
+                      <SortIcon />
+                    </ToggleButton>
+                    <ToggleButton value={GlobalConfigSetLogSortingPayload.ASC} aria-label={GlobalConfigSetLogSortingPayload.ASC}>
+                      <SortIcon style={{ transform: 'rotate( 180deg)' }} />
+                    </ToggleButton>
+                  </ToggleButtonGroup>
+                </FormControl>
+              </Box>
+            </Popover>
           </div>
         </Toolbar>
       </AppBar>
