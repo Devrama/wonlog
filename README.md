@@ -4,7 +4,17 @@ Stream your local logs to browers to debug easier.
 
 ## Features
 
+- stream raw text or JSON string logs to browser
+- search logs by a keyword
+- multiple log streams to a browser
+- sort logs
+
 ## Screenshots
+
+![Screenshot - darkmode](./docs/assets/images/screenshot1.png)
+![Screenshot - lightmode](./docs/assets/images/screenshot2.png)
+![Screenshot - search & settings](./docs/assets/images/screenshot3.png)
+![Screenshot - detail view](./docs/assets/images/screenshot4.png)
 
 ## Installing
 

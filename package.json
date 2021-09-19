@@ -13,7 +13,7 @@
     "clean": "lerna run clean && rimraf dist",
     "build": "lerna run --scope wonlog-webapp build && lerna run --scope wonlog-agent --scope wonlog-server --scope wonlog build",
     "start:agent": "NODE_ENV=development ts-node --files packages/wonlog-agent/src/bin/agent.ts",
-    "start:server": "lerna run --stream --scope wonlog-server start",
+    "start:server": "NODE_ENV=development nodemon --exec ts-node --files packages/wonlog-server/src/index.ts",
     "start:webapp": "lerna run --stream --scope wonlog-webapp start",
     "start:wonlog:server": "lerna run --stream --scope wonlog start:server",
     "start:wonlog:agent": "NODE_ENV=development ts-node --files packages/wonlog/src/bin/wonlog-agent",

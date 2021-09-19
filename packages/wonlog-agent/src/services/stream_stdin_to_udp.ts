@@ -8,8 +8,8 @@ import { AgentLog } from '../types/wonlog_shared';
 
 const program = new Command();
 program
-  .option('-h, --host [host]', 'Server host', '127.0.0.1')
-  .option('-p, --port [port]', 'Server port', '7878')
+  .option('-h, --udp-host [host]', 'UDP Server host', '127.0.0.1')
+  .option('-p, --udp-port [port]', 'UDP Server port', '7878')
   .option('-s, --stream-name [name]', 'Stream name')
   .option('-v, --verbose [type]', 'Print logs', false);
 
@@ -86,8 +86,8 @@ process.stdin.pipe(split2()).on('data', function (textLog) {
       data,
       0,
       data.length,
-      _options.port,
-      _options.host,
+      _options.udpPort,
+      _options.udpPost,
       function () {
         _countMessagesInQueue--;
         if (_isStdinClosed && _countMessagesInQueue === 0) {

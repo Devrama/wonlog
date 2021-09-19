@@ -3,14 +3,15 @@ import app from './src/app';
 import { WonServer } from '../_won_modules/won-node-framework';
 
 export class ExpressServer implements WonServer {
-  private readonly ip: string;
+  private readonly host: string;
   private readonly port: number;
   private _httpServer: http.Server | null = null;
 
-  constructor(ip: string, port: number) {
-    this.ip = ip;
+  constructor(host: string, port: number) {
+    this.host = host;
     this.port = port;
     app.set('port', this.port);
+    app.set('host', this.host);
   }
 
   public get httpServer(): http.Server | null {
@@ -22,13 +23,12 @@ export class ExpressServer implements WonServer {
   }
 
   public start(): void {
-    this._httpServer = app.listen(app.get('port'), () => {
+    this._httpServer = app.listen(app.get('port'), app.get('host'), () => {
       console.log(
-        '  App is running at http://localhost:%d in %s mode',
-        app.get('port'),
-        app.get('env')
+        '  wonlog HTTP server is running at http://%s:%d',
+        app.get('host'),
+        app.get('port')
       );
-      console.log('  Press CTRL-C to stop\n');
     });
   }
 

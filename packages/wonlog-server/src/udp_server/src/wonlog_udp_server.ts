@@ -6,11 +6,7 @@ import {
 export class WonlogUdpServer extends WonUdpSocketServer {
   private readonly _webSocketServer: WonWebSocketServer;
 
-  constructor(
-    ip: string = '0.0.0.0',
-    port: number = 7878,
-    webSocketServer: WonWebSocketServer
-  ) {
+  constructor(ip: string, port: number, webSocketServer: WonWebSocketServer) {
     super(ip, port);
     this._webSocketServer = webSocketServer;
   }

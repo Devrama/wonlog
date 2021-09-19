@@ -2,12 +2,12 @@ import dgram, { RemoteInfo } from 'dgram';
 import { WonServer } from '../../base';
 
 export abstract class WonUdpSocketServer implements WonServer {
-  private readonly ip: string;
+  private readonly host: string;
   private readonly port: number;
   private _udpServer: dgram.Socket | null = null;
 
-  constructor(ip: string, port: number) {
-    this.ip = ip;
+  constructor(host: string, port: number) {
+    this.host = host;
     this.port = port;
   }
 
@@ -18,7 +18,13 @@ export abstract class WonUdpSocketServer implements WonServer {
   public start(): void {
     this._udpServer = dgram.createSocket('udp4');
     this._attachEvents();
-    this.udpServer.bind(this.port, this.ip);
+    this.udpServer.bind(this.port, this.host, (): void => {
+      console.log(
+        '  wonlog UDP server is running at http://%s:%d',
+        this.host,
+        this.port
+      );
+    });
   }
 
   public stop(): void {
