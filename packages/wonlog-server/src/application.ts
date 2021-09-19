@@ -15,18 +15,18 @@ export class WonServerLocalApp implements WonApplication {
 
   constructor() {
     this.#httpHost = '0.0.0.0';
-    this.#httpPort = 7979;
+    this.#httpPort = 7978;
     this.#udpHost = '0.0.0.0';
-    this.#udpPort = 7878;
+    this.#udpPort = 7977;
   }
 
   public boot(): WonServerLocalApp {
     const program = new Command();
     program
-      .option('-h, --http-host [host]', 'UDP Server host', '0.0.0.0')
-      .option('-p, --http-port [port]', 'UDP Server port', '7979')
-      .option('-h, --udp-host [host]', 'UDP Server host', '0.0.0.0')
-      .option('-p, --udp-port [port]', 'UDP Server port', '7878');
+      .option('--http-host [host]', 'HTTP Server host', '0.0.0.0')
+      .option('--http-port [port]', 'HTTP Server port', '7978')
+      .option('--udp-host [host]', 'UDP Server host', '0.0.0.0')
+      .option('--udp-port [port]', 'UDP Server port', '7977');
 
     program.parse(process.argv);
     const options = program.opts();

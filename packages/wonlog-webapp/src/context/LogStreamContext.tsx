@@ -9,6 +9,12 @@ import {
   GlobalConfigSetLogSortingPayload,
 } from './GlobalConfigContext';
 
+declare global {
+  interface Window {
+    WONLOG_WEBSOCKET_URL: string
+  }
+}
+
 type IncomingLog = HydratedLog;
 
 export interface LogData {
@@ -81,7 +87,7 @@ const useLogStreamWebSocket = (): ContextReturnType => {
       return;
     }
 
-    _socket = new WebSocket('ws://localhost:7979');
+    _socket = new WebSocket(window.WONLOG_WEBSOCKET_URL);
     // Connection opened
     _socket.addEventListener('open', function(event) {
       console.log('open', event);
