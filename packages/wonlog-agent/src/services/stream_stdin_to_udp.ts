@@ -9,7 +9,7 @@ import { AgentLog } from '../types/wonlog_shared';
 const program = new Command();
 program
   .option('-h, --host [host]', 'Server host', '127.0.0.1')
-  .option('-p, --port [port]', 'Server port', '7081')
+  .option('-p, --port [port]', 'Server port', '7878')
   .option('-s, --stream-name [name]', 'Stream name')
   .option('-v, --verbose [type]', 'Print logs', false);
 
@@ -38,6 +38,13 @@ const timer = setInterval((): void => {
 }, 300);
 
 process.stdin.pipe(split2()).on('data', function (textLog) {
+  if (textLog.length > JUNK_MAX_SIZE) {
+    console.error(
+      `A single log can't exceeeds the size of ${JUNK_MAX_SIZE} Bytes`
+    );
+    return;
+  }
+
   const hydratedLog: AgentLog = {
     wonlogMetadata: {
       streamID: _options.streamName,
@@ -64,6 +71,11 @@ process.stdin.pipe(split2()).on('data', function (textLog) {
   }
 
   hydratedLog.data = parsedLog ?? { message: textLog };
+
+  if (isJson && !hydratedLog.data.message) {
+    hydratedLog.data.message = `${textLog.substring(0, 200)}...`;
+  }
+
   const stringifiedData = JSON.stringify(hydratedLog);
   const stringifiedDataSize = stringifiedData.length;
 

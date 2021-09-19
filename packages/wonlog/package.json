@@ -1,6 +1,6 @@
 {
   "name": "wonlog",
-  "version": "0.0.2-alpha.17+0a0a4b6",
+  "version": "0.0.0",
   "description": "Simple analytic tool that streams local logs to web browser.",
   "files": [
     "dist"
@@ -35,8 +35,8 @@
   },
   "homepage": "https://github.com/Devrama/wonlog#readme",
   "dependencies": {
-    "wonlog-agent": "^0.0.2-alpha.17+0a0a4b6",
-    "wonlog-server": "^0.0.2-alpha.17+0a0a4b6"
+    "wonlog-agent": "0.0.0",
+    "wonlog-server": "0.0.0"
   },
   "gitHead": "0a0a4b6b794b3ce1114169629b811fd706e1059e"
 }

@@ -81,7 +81,7 @@ const useLogStreamWebSocket = (): ContextReturnType => {
       return;
     }
 
-    _socket = new WebSocket('ws://localhost:5000');
+    _socket = new WebSocket('ws://localhost:7979');
     // Connection opened
     _socket.addEventListener('open', function(event) {
       console.log('open', event);

@@ -81,7 +81,7 @@ const LeftMenu:React.FC<LeftMenuProps> = ({ isMenuOpen, handleMenuClose }) => {
       </div>
       <Divider />
       <List subheader={
-        <ListSubheader component="div" classes={{ root: clsx({ [classes.hide]: !isMenuOpen })}}>Logs Streams</ListSubheader>
+        <ListSubheader component="div" classes={{ root: clsx({ [classes.hide]: !isMenuOpen })}}>Log Streams</ListSubheader>
       }>
         <LeftMenuItems />
       </List>

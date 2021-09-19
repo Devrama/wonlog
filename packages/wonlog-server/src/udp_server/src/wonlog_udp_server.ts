@@ -8,7 +8,7 @@ export class WonlogUdpServer extends WonUdpSocketServer {
 
   constructor(
     ip: string = '0.0.0.0',
-    port: number = 7081,
+    port: number = 7878,
     webSocketServer: WonWebSocketServer
   ) {
     super(ip, port);

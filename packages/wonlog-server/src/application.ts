@@ -15,7 +15,7 @@ export class WonServerLocalApp implements WonApplication {
   public start(): void {
     const expressServer = new ExpressServer(
       '0.0.0.0',
-      Number(process.env.PORT) || 5000
+      Number(process.env.PORT) || 7979
     );
     expressServer.start();
 
@@ -26,7 +26,7 @@ export class WonServerLocalApp implements WonApplication {
       expressServer.httpServer
     );
     wonWebSocketServer.start();
-    new WonlogUdpServer('0.0.0.0', 7081, wonWebSocketServer).start();
+    new WonlogUdpServer('0.0.0.0', 7878, wonWebSocketServer).start();
   }
 
   public stop(): void {
