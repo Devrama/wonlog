@@ -29,7 +29,16 @@ const LeftMenuItems:React.FC = () => {
         <>
           {Array.from(globalConfig.streamIDs).map(streamID => {
             return (
-              <ListItem key={streamID} button selected={globalConfig.currentStreamID === streamID} onClick={(): void => { setGlobalConfig({ type: GlobalConfigActionType.SET_CURRENT_STREAM_ID, payload: streamID }); }}>
+              <ListItem
+                key={streamID}
+                button
+                selected={globalConfig.currentStreamID === streamID}
+                onClick={(): void => {
+                  setGlobalConfig({
+                    type: GlobalConfigActionType.SET_CURRENT_STREAM_ID,
+                    payload: streamID,
+                  });
+                }}>
                 <ListItemIcon style={{ minWidth: 33 }}><LibraryBooksIcon /></ListItemIcon>
                 <ListItemText className={classes.listItemText} secondary={streamID}  />
               </ListItem>

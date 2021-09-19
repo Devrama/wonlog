@@ -11,7 +11,7 @@ import {
 
 declare global {
   interface Window {
-    WONLOG_WEBSOCKET_URL: string
+    WONLOG_RELEASE_WEBSOCKET_URL: string
   }
 }
 
@@ -87,7 +87,7 @@ const useLogStreamWebSocket = (): ContextReturnType => {
       return;
     }
 
-    _socket = new WebSocket(window.WONLOG_WEBSOCKET_URL);
+    _socket = new WebSocket((process.env.NODE_ENV === 'development' ? process.env.REACT_APP_WEB_SOCKET_URL : window.WONLOG_RELEASE_WEBSOCKET_URL) as string);
     // Connection opened
     _socket.addEventListener('open', function(event) {
       console.log('open', event);
@@ -102,6 +102,16 @@ const useLogStreamWebSocket = (): ContextReturnType => {
         if(_pauseBuffer.length > _logBufferSize) {
           _pauseBuffer.splice(_logBufferSize - _pauseBuffer.length);
         }
+
+        for(const incomingLog of incomingLogs) {
+          if(!_streamLog.has(incomingLog.wonlogMetadata.streamID)) {
+            setGlobalConfig({
+              type: GlobalConfigActionType.ADD_STREAM_ID,
+              payload: incomingLog.wonlogMetadata.streamID,
+            });
+          }
+        }
+
         return;
       } else if(!_isPaused && _pauseBuffer.length > 0) {
         incomingLogs = [..._pauseBuffer, ...incomingLogs];
@@ -295,6 +305,11 @@ const useLogStreamWebSocket = (): ContextReturnType => {
   useEffect(() => {
     if(_currentStreamID) {
       if(_isSortingChanged) {
+        // No need to pause for ASC as the data grows at the end.
+        if(_logSorting === GlobalConfigSetLogSortingPayload.ASC) {
+          _isPaused = false;
+        }
+
         _streamLog.forEach(({ logs }) => {
           logs.reverse();
         });

@@ -1,4 +1,4 @@
-import React, { ReactElement, useContext, useState } from 'react';
+import React, { ReactElement, useContext, useState, useEffect } from 'react';
 import { get } from 'lodash';
 import clsx from 'clsx';
 import { makeStyles } from '@material-ui/core/styles';
@@ -37,6 +37,7 @@ interface VirtualizedTableProps  {
   headerHeight?: number;
   onRowClick: (params:RowMouseEventHandlerParams) => void;
   onScroll: (params:ScrollEventData) => void;
+  scrollTop: number | undefined
   rowCount: number;
   rowGetter: (row: Row) => LogData;
   rowHeight?: number;
@@ -132,6 +133,7 @@ const VirtualizedTable:React.FC<VirtualizedTableProps> = ({
   rowHeight = 28,
   headerHeight = 38,
   onRowClick,
+  scrollTop,
   onScroll,
   ...tableProps
 }) => {
@@ -196,6 +198,7 @@ const VirtualizedTable:React.FC<VirtualizedTableProps> = ({
           {...tableProps}
           rowClassName={getRowClassName}
           onRowClick={onRowClick}
+          scrollTop={scrollTop}
           onScroll={onScroll}
           scrollToAlignment="start"
         >
@@ -230,6 +233,14 @@ const LogTable: React.FC = () => {
   const { logs, pause, resume } = useContext(LogStreamContext);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [currentDetailLog, setCurrentDetailLog] = useState<LogData>();
+  const [scrollTop, setScrollTop] = useState<number>();
+
+  useEffect(() => {
+    setScrollTop(0);
+    setTimeout(() => {
+      setScrollTop(undefined);
+    });
+  }, [globalConfig.currentStreamID]);
 
   return (
     <Paper style={{ height: '100%', width: '100%' }}>
@@ -240,6 +251,7 @@ const LogTable: React.FC = () => {
           setIsDetailOpen(true);
           setCurrentDetailLog(rowData);
         }}
+        scrollTop={scrollTop}
         onScroll={({ scrollTop }): void => {
           // ASC does not matter with scrolling as it grows at the end.
           if(globalConfig.logSorting === GlobalConfigSetLogSortingPayload.DESC) {

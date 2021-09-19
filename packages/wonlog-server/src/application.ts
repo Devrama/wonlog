@@ -23,6 +23,8 @@ export class WonServerLocalApp implements WonApplication {
   public boot(): WonServerLocalApp {
     const program = new Command();
     program
+      .option('--webapp-host [host]', 'UDP Server host', '0.0.0.0') // This is used in /packages/wonlog in the release build. TODO. find a better way.
+      .option('--webapp-port [port]', 'UDP Server port', '7979') // This is used in /packages/wonlog in the release build. TODO. find a better way.
       .option('--http-host [host]', 'HTTP Server host', '0.0.0.0')
       .option('--http-port [port]', 'HTTP Server port', '7978')
       .option('--udp-host [host]', 'UDP Server host', '0.0.0.0')
