@@ -17,10 +17,6 @@ export enum GlobalConfigSetSearchModePayload {
   TEXT = 'text',
   REGEX = 'regex',
 }
-export enum GlobalConfigSetDarkmodePayload {
-  LIGHT = 'light',
-  DARK = 'dark',
-}
 export enum GlobalConfigSetLogSortingPayload {
   DESC = 'desc',
   ASC = 'asc',
@@ -45,10 +41,6 @@ interface GlobalConfigSetSearchModeAction {
   type: GlobalConfigActionType.SET_SEARCH_MODE
   payload: GlobalConfigSetSearchModePayload
 }
-interface GlobalConfigSetDarkmodeAction {
-  type: GlobalConfigActionType.SET_DARKMODE
-  payload: GlobalConfigSetDarkmodePayload
-}
 interface GlobalConfigSetLogSortingAction {
   type: GlobalConfigActionType.SET_LOG_SORTING
   payload: GlobalConfigSetLogSortingPayload
@@ -70,7 +62,6 @@ export type GlobalConfigAction =
   | GlobalConfigSetCurrentStreamIDAction
   | GlobalConfigSetSearchKeywordAction
   | GlobalConfigSetSearchModeAction
-  | GlobalConfigSetDarkmodeAction
   | GlobalConfigSetLogSortingAction
   | GlobalConfigAddStreamIDAction
   | GlobalConfigSetLogBufferSizeAction
@@ -80,7 +71,6 @@ export interface GlobalConfigState {
   currentStreamID?: GlobalConfigSetCurrentStreamIDPayload
   searchKeyword?: GlobalConfigSetSearchKeywordPayload
   searchMode: GlobalConfigSetSearchModePayload
-  darkmode: GlobalConfigSetDarkmodePayload
   logSorting: GlobalConfigSetLogSortingPayload
   streamIDs: GlobalConfigAddStreamIDPayload[]
   logBufferSize: GlobalConfigSetLogBufferSizePayload

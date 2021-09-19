@@ -27,7 +27,20 @@ export interface CurrentStream {
   logs: LogData[];
 }
 
-const LogStreamContext = createContext<CurrentStream>({ logs: []});
+interface ContextReturnType extends CurrentStream {
+  pause: () => void;
+  resume: () => void;
+}
+
+const LogStreamContext = createContext<ContextReturnType>({
+  logs: [],
+  pause: ():void => {
+    // noop
+  },
+  resume: ():void => {
+    // noop
+  },
+});
 
 // Create WebSocket connection.
 let _socket: WebSocket;
@@ -40,6 +53,8 @@ let _logBufferSize: number = Number(process.env.REACT_APP_LOG_BUFFER_SIZE) as nu
 let _logSorting: GlobalConfigSetLogSortingPayload = GlobalConfigSetLogSortingPayload.DESC;
 let _isSortingChanged = false;
 let _searchMode: GlobalConfigSetSearchModePayload;
+let _pauseBuffer: IncomingLog[] = [];
+let _isPaused = false;
 
 const hasText = (text: string, _searchKeyword: string): boolean => {
   if(_searchMode === GlobalConfigSetSearchModePayload.TEXT) {
@@ -49,7 +64,7 @@ const hasText = (text: string, _searchKeyword: string): boolean => {
   }
 };
 
-const useLogStreamWebSocket = (): CurrentStream => {
+const useLogStreamWebSocket = (): ContextReturnType => {
   const [ currentLogs, setCurrentLogs ] = useState<CurrentStream>({ logs: [] });
   const { globalConfig, setGlobalConfig } = useGlobalConfig();
   _currentStreamID = globalConfig.currentStreamID;
@@ -75,7 +90,22 @@ const useLogStreamWebSocket = (): CurrentStream => {
 
     // Listen for messages
     _socket.addEventListener('message', function(event) {
-      const incomingLogs: IncomingLog[] = JSON.parse(event.data);
+      let incomingLogs: IncomingLog[] = JSON.parse(event.data);
+      if(_isPaused) {
+        _pauseBuffer = [..._pauseBuffer, ...incomingLogs];
+        if(_pauseBuffer.length > _logBufferSize) {
+          _pauseBuffer.splice(_logBufferSize - _pauseBuffer.length);
+        }
+        return;
+      } else if(!_isPaused && _pauseBuffer.length > 0) {
+        incomingLogs = [..._pauseBuffer, ...incomingLogs];
+        if(incomingLogs.length > _logBufferSize) {
+          incomingLogs.splice(_logBufferSize - incomingLogs.length);
+        }
+        console.log(incomingLogs.length);
+        _pauseBuffer = [];
+      }
+
       for(const { wonlogMetadata, data } of incomingLogs) {
         const streamID = wonlogMetadata.streamID;
         let logs: LogData[] = [];
@@ -103,8 +133,10 @@ const useLogStreamWebSocket = (): CurrentStream => {
           logs.push(logData);
         }
 
-        if(logs.length > _logBufferSize) {
+        if(logs.length > _logBufferSize && _logSorting === GlobalConfigSetLogSortingPayload.DESC) {
           logs.splice(_logBufferSize - logs.length);
+        } else if(logs.length > _logBufferSize && _logSorting === GlobalConfigSetLogSortingPayload.ASC) {
+          logs.splice(0, logs.length - _logBufferSize);
         }
 
         if(_searchKeyword && hasText(logData.wonlogMetadata.raw, _searchKeyword) && _filteredStreamLog?.has(streamID)) {
@@ -114,8 +146,10 @@ const useLogStreamWebSocket = (): CurrentStream => {
             filteredLogs.push(logData);
           }
 
-          if(filteredLogs.length > _logBufferSize) {
+          if(filteredLogs.length > _logBufferSize && _logSorting === GlobalConfigSetLogSortingPayload.DESC) {
             filteredLogs.splice(_logBufferSize - filteredLogs.length);
+          } else if(filteredLogs.length > _logBufferSize && _logSorting === GlobalConfigSetLogSortingPayload.ASC) {
+            filteredLogs.splice(0, filteredLogs.length - _logBufferSize);
           }
           _filteredStreamLog.set(streamID, { isContextUpdated: false, logs: filteredLogs });
         }
@@ -132,13 +166,15 @@ const useLogStreamWebSocket = (): CurrentStream => {
 
         if(!isEqual(oldProperties.sort(), logData.wonlogMetadata.propertyNames.sort())) {
           mergedPropertyNames = union(oldProperties, logData.wonlogMetadata.propertyNames);
-          setGlobalConfig({
-            type: GlobalConfigActionType.SET_STREAM_PROPERTY_NAMES,
-            payload: {
-              ...globalConfig.streamPropertyNames,
-              [streamID]: [...mergedPropertyNames],
-            }
-          });
+          if(!isEqual(oldProperties.sort(), mergedPropertyNames.sort())) {
+            setGlobalConfig({
+              type: GlobalConfigActionType.SET_STREAM_PROPERTY_NAMES,
+              payload: {
+                ...globalConfig.streamPropertyNames,
+                [streamID]: [...mergedPropertyNames],
+              }
+            });
+          }
         }
 
         _streamLog.set(streamID, { isContextUpdated: false, logs, propertyNames: [...mergedPropertyNames] });
@@ -175,6 +211,7 @@ const useLogStreamWebSocket = (): CurrentStream => {
                 type: GlobalConfigActionType.SET_CURRENT_STREAM_ID,
                 payload: streamID,
               });
+              _currentStreamID = streamID;
             }
             _streamLog.set(streamID, { isContextUpdated: true, logs, propertyNames });
           }
@@ -216,14 +253,18 @@ const useLogStreamWebSocket = (): CurrentStream => {
 
   useEffect(() => {
     _streamLog.forEach(({ logs }) => {
-      if(logs.length > _logBufferSize) {
+      if(logs.length > _logBufferSize && _logSorting === GlobalConfigSetLogSortingPayload.DESC) {
         logs.splice(_logBufferSize - logs.length);
+      } else if(logs.length > _logBufferSize && _logSorting === GlobalConfigSetLogSortingPayload.ASC) {
+        logs.splice(0, logs.length - _logBufferSize);
       }
     });
     if(_filteredStreamLog && _currentStreamID) {
       const filteredLogs = _filteredStreamLog.get(_currentStreamID)?.logs;
-      if(filteredLogs && filteredLogs.length > _logBufferSize) {
+      if(filteredLogs && filteredLogs.length > _logBufferSize && _logSorting === GlobalConfigSetLogSortingPayload.DESC) {
         filteredLogs.splice(_logBufferSize - filteredLogs.length);
+      } else if(filteredLogs && filteredLogs.length > _logBufferSize && _logSorting === GlobalConfigSetLogSortingPayload.ASC) {
+        filteredLogs.splice(0, filteredLogs.length - _logBufferSize);
       }
     }
   }, [_logBufferSize]);
@@ -273,7 +314,11 @@ const useLogStreamWebSocket = (): CurrentStream => {
     };
   }, []); // Only on Mount
 
-  return currentLogs;
+  return {
+    ...currentLogs,
+    pause: (): void => { _isPaused = true; },
+    resume: (): void => { _isPaused = false; },
+  };
 };
 
 const LogStreamProvider:React.FC = props => {
