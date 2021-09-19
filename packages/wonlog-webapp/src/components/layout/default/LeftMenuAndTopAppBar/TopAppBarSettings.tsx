@@ -64,7 +64,7 @@ const TopAppBarSettings:React.FC = () => {
         <Typography variant="h6">Settings</Typography>
         <Box>
           <FormControl margin="dense">
-            <FormHelperText>Maximum Buffer Size</FormHelperText>
+            <FormHelperText>Maximum Buffer Logs in Browser</FormHelperText>
             <TextField
               defaultValue={globalConfig.logBufferSize}
               variant="outlined"
