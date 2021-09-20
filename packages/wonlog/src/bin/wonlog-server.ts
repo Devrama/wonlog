@@ -6,6 +6,10 @@ import express from 'express';
 import path from 'path';
 import fs from 'fs';
 
+const DEFAULT_PORT = 7979;
+const DEFAULT_SERVER_HOST = '0.0.0.0';
+const DEFAULT_URL_HOST = '127.0.0.1';
+
 // The code below in the comment is in packages/wonlog-server/src/application.ts
 // .option('--webapp-host [host]', 'UDP Server host', '0.0.0.0') // This is used in /packages/wonlog in the release build. TODO. find a better way.
 // .option('--webapp-port [port]', 'UDP Server port', '7979'); // This is used in /packages/wonlog in the release build. TODO. find a better way.
@@ -34,4 +38,14 @@ app.get('/', function (req, res) {
 });
 app.use(express.static(path.join(__dirname, WEBAPP_BASE_PATH, 'webapp')));
 
-app.listen(options['webapp-port'] || 7979, options['webapp-host'] || '0.0.0.0');
+app.listen(
+  options['webapp-port'] || DEFAULT_PORT,
+  options['webapp-host'] || DEFAULT_SERVER_HOST,
+  (): void => {
+    console.log(
+      '  Open your browser and go to http://%s:%d',
+      options['webapp-host'] || DEFAULT_URL_HOST,
+      options['webapp-port'] || DEFAULT_PORT
+    );
+  }
+);
