@@ -1,6 +1,6 @@
 {
   "name": "wonlog-agent",
-  "version": "0.0.1",
+  "version": "0.0.0",
   "description": "Simple analytic tool that streams local logs to web browser.",
   "main": "dist/index.js",
   "types": "./dist/types/index.d.ts",
