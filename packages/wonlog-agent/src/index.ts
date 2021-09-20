@@ -108,7 +108,20 @@ process.stdin.pipe(split2()).on('data', function (textLog) {
 process.stdin.on('end', function () {
   _isStdinClosed = true;
   clearInterval(timer);
-  if (!_countMessagesInQueue) {
+
+  if (_buffer.length > 0) {
+    const data = Buffer.from(`[${_buffer.join(',')}]`);
+    _udpClient.send(
+      data,
+      0,
+      data.length,
+      _options.udpPort,
+      _options.udpPost,
+      function () {
+        _udpClient.close();
+      }
+    );
+  } else if (!_countMessagesInQueue) {
     _udpClient.close();
   }
 });
