@@ -11,10 +11,10 @@ Stream your local logs to browers to debug easier.
 
 ## Screenshots
 
-![Screenshot - darkmode](./docs/assets/images/screenshot1.png)
-![Screenshot - lightmode](./docs/assets/images/screenshot2.png)
-![Screenshot - search & settings](./docs/assets/images/screenshot3.png)
-![Screenshot - detail view](./docs/assets/images/screenshot4.png)
+![Screenshot - darkmode](https://raw.githubusercontent.com/Devrama/wonlog/master/docs/assets/images/screenshot1.png)
+![Screenshot - lightmode](https://raw.githubusercontent.com/Devrama/wonlog/master/docs/assets/images/screenshot2.png)
+![Screenshot - search & settings](https://raw.githubusercontent.com/Devrama/wonlog/master/docs/assets/images/screenshot3.png)
+![Screenshot - detail view](https://raw.githubusercontent.com/Devrama/wonlog/master/docs/assets/images/screenshot4.png)
 
 ## Installing
 
