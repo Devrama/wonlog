@@ -3,6 +3,8 @@ import clsx from 'clsx';
 import { makeStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
+import IconButton from '@material-ui/core/IconButton';
+import GitHubIcon from '@material-ui/icons/GitHub';
 import TopAppBarLogoAndOpenMenu from './TopAppBarLogoAndOpenMenu';
 import TopAppBarSearch from './TopAppBarSearch';
 import TopAppBarDarkmode from './TopAppBarDarkmode';
@@ -58,6 +60,13 @@ const TopAppBar:React.FC<TopAppBarProps> = ({ isMenuOpen, handleMenuOpen }) => {
         <TopAppBarDarkmode />
         <div>
           <TopAppBarInfo />
+          <IconButton
+            aria-label="Gibhub Devrama Wonlog"
+            href="https://github.com/devrama/wonlog"
+            target="_blank"
+          >
+            <GitHubIcon />
+          </IconButton>
           <TopAppBarSettings />
         </div>
       </Toolbar>

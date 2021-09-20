@@ -2,12 +2,15 @@
 
 Stream your local logs to browers to debug easier.
 
+This project is inspired by [rtail](https://github.com/kilianc/rtail).
+
 ## Features
 
 - stream raw text or JSON string logs to browser
 - search logs by a keyword
 - multiple log streams to a browser
 - sort logs
+- uses UDP & WebSocket
 
 ## Screenshots
 
@@ -48,4 +51,48 @@ $ cat log_file.txt | wonlog-agent --stream-name='My First Log stream' --verbose
 
 # streaming from a growing log file to wonlog agent
 $ tail -F log_file.txt | wonlog-agent --stream-name='My First Log stream' --verbose
+```
+
+# JSON log format
+
+## Reserved Properties
+
+- `timestamp`: If `timestamp` property exists in a JSON formt log with either ISO Date string or the number of milliseconds elapsed since Janunary 1, 1970, `TIMESTAMP` column on wonlog screen shows it instead of the `timestamp` of current time.
+- `message`: If `message` property exists in a JSON format log, `MESSAGE` column shows it instead of stringified log.
+- `level`: If `level` property exists with values below in a JSON format log, `TIMESTAMP` column shows in different colors.
+    - `critical` or `fatal`
+    - `error`
+    - `warn` or `warning`
+    - `info`
+    - `debug`
+    - `trace`
+
+# CLI options
+
+## `wonlog-server`
+
+```bash
+Usage: index [options]
+
+Options:
+  --webapp-host [host]  UDP Server host (default: "0.0.0.0")
+  --webapp-port [port]  UDP Server port (default: "7979")
+  --http-host [host]    HTTP Server host (default: "0.0.0.0")
+  --http-port [port]    HTTP Server port (default: "7978")
+  --udp-host [host]     UDP Server host (default: "0.0.0.0")
+  --udp-port [port]     UDP Server port (default: "7977")
+  -h, --help            display help for command
+```
+
+## `wonlog-webapp`
+
+```
+Usage: agent [options]
+
+Options:
+  -h, --udp-host [host]     UDP Server host (default: "127.0.0.1")
+  -p, --udp-port [port]     UDP Server port (default: "7977")
+  -s, --stream-name [name]  Stream name
+  -v, --verbose [type]      Print logs (default: false)
+  --help                    display help for command
 ```
