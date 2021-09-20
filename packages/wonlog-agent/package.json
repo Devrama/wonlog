@@ -40,8 +40,8 @@
     "@types/split2": "3.2.1"
   },
   "dependencies": {
-    "commander": "8.1.0",
-    "date-fns": "2.23.0",
+    "commander": "8.2.0",
+    "date-fns": "2.24.0",
     "json5": "2.2.0",
     "nanoid": "3.1.25",
     "split2": "3.2.2"
