@@ -1,7 +1,7 @@
 {
   "name": "wonlog-server",
   "version": "0.0.1",
-  "description": "Simple analytic tool that streams local logs to web browser.",
+  "description": "Stream your local logs to browers.",
   "main": "dist/index.js",
   "types": "./dist/types/index.d.ts",
   "files": [
@@ -48,9 +48,6 @@
     "express": "4.17.1",
     "lusca": "1.7.0",
     "ws": "8.2.2"
-  },
-  "peerDependencies": {
-    "wonlog-agent": "0.0.0"
   },
   "gitHead": "0a0a4b6b794b3ce1114169629b811fd706e1059e"
 }

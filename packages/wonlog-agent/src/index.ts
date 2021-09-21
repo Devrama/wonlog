@@ -1,6 +1,7 @@
 import dgram from 'dgram';
 import split2 from 'split2';
 import JSON5 from 'json5';
+import stripAnsi from 'strip-ansi';
 import { Command } from 'commander';
 import { nanoid } from 'nanoid';
 import { parseISO } from 'date-fns';
@@ -37,71 +38,79 @@ const timer = setInterval((): void => {
   _isTimedOut = true;
 }, 300);
 
-process.stdin.pipe(split2()).on('data', function (textLog) {
-  if (textLog.length > JUNK_MAX_SIZE) {
-    console.error(
-      `A single log can't exceeeds the size of ${JUNK_MAX_SIZE} Bytes`
-    );
-    return;
-  }
-
-  const hydratedLog: AgentLog = {
-    wonlogMetadata: {
-      streamID: _options.streamName,
-      logXRefID: nanoid(),
-      timestamp: Date.now(),
-    },
-    data: {},
-  };
-  let isJson = true;
-  let parsedLog: Record<string, unknown> | undefined = undefined;
-
+process.stdin.pipe(split2()).on('data', function (str) {
   try {
-    parsedLog = JSON5.parse(textLog);
-  } catch (err) {
-    isJson = false;
-  }
-  if (isJson && typeof parsedLog?.timestamp === 'number') {
-    hydratedLog.wonlogMetadata.timestamp = parsedLog.timestamp;
-  } else if (isJson && typeof parsedLog?.timestamp === 'string') {
-    const parsedTime = parseISO(parsedLog.timestamp).getTime();
-    hydratedLog.wonlogMetadata.timestamp = isNaN(parsedTime)
-      ? Date.now()
-      : parsedTime;
-  }
+    let textLog = stripAnsi(str); // Strin ANSI escape codes
 
-  hydratedLog.data = parsedLog ?? { message: textLog };
+    if (textLog.length > JUNK_MAX_SIZE) {
+      textLog = `A single log can't exceeeds the size of ${JUNK_MAX_SIZE} Bytes. -  ${textLog.substring(
+        0,
+        JUNK_MAX_SIZE
+      )}...`;
+    }
 
-  if (isJson && !hydratedLog.data.message) {
-    hydratedLog.data.message = `${textLog.substring(0, 200)}...`;
-  }
+    const hydratedLog: AgentLog = {
+      wonlogMetadata: {
+        streamID: _options.streamName,
+        logXRefID: nanoid(),
+        timestamp: Date.now(),
+      },
+      data: {},
+    };
+    let isJson = true;
+    let parsedLog: Record<string, unknown> | undefined = undefined;
 
-  const stringifiedData = JSON.stringify(hydratedLog);
-  const stringifiedDataSize = stringifiedData.length;
+    try {
+      parsedLog = JSON5.parse(textLog);
+    } catch {
+      isJson = false;
+    }
+    if (isJson && typeof parsedLog?.timestamp === 'number') {
+      hydratedLog.wonlogMetadata.timestamp = parsedLog.timestamp;
+    } else if (isJson && typeof parsedLog?.timestamp === 'string') {
+      const parsedTime = parseISO(parsedLog.timestamp).getTime();
+      hydratedLog.wonlogMetadata.timestamp = isNaN(parsedTime)
+        ? Date.now()
+        : parsedTime;
+    }
 
-  if (JUNK_MAX_SIZE < _bufferSize + stringifiedDataSize || _isTimedOut) {
-    const data = Buffer.from(`[${_buffer.join(',')}]`);
-    _countMessagesInQueue++;
-    _udpClient.send(
-      data,
-      0,
-      data.length,
-      _options.udpPort,
-      _options.udpPost,
-      function () {
-        _countMessagesInQueue--;
-        if (_isStdinClosed && _countMessagesInQueue === 0) {
-          _udpClient.close();
+    hydratedLog.data = parsedLog ?? { message: textLog };
+
+    if (isJson && !hydratedLog.data.message) {
+      hydratedLog.data.message = `${textLog.substring(0, 200)}...`;
+    }
+
+    const stringifiedData = JSON.stringify(hydratedLog);
+    const stringifiedDataSize = stringifiedData.length;
+
+    if (JUNK_MAX_SIZE < _bufferSize + stringifiedDataSize || _isTimedOut) {
+      const data = Buffer.from(`[${_buffer.join(',')}]`);
+      _countMessagesInQueue++;
+      _udpClient.send(
+        data,
+        0,
+        data.length,
+        _options.udpPort,
+        _options.udpPost,
+        function () {
+          _countMessagesInQueue--;
+          if (_isStdinClosed && _countMessagesInQueue === 0) {
+            _udpClient.close();
+          }
         }
-      }
-    );
+      );
 
-    _bufferSize = stringifiedDataSize;
-    _buffer = [stringifiedData];
-    _isTimedOut = false;
-  } else {
-    _bufferSize += stringifiedDataSize;
-    _buffer.push(stringifiedData);
+      _bufferSize = stringifiedDataSize;
+      _buffer = [stringifiedData];
+      _isTimedOut = false;
+    } else {
+      _bufferSize += stringifiedDataSize;
+      _buffer.push(stringifiedData);
+    }
+  } catch (err) {
+    // Never stop this process.
+    console.error('wonlog-agent error, reason: ', err);
+    console.error('wonlog-agent error, original log: ', str);
   }
 });
 

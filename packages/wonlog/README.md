@@ -1,6 +1,6 @@
 # wonlog
 
-Stream your local logs to browers to debug easier.
+Stream your local logs to browers.
 
 This project is inspired by [rtail](https://github.com/kilianc/rtail).
 

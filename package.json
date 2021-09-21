@@ -1,7 +1,7 @@
 {
   "name": "wonlog",
   "version": "0.0.0",
-  "description": "Simple analytic tool that streams local logs to web browser.",
+  "description": "Stream your local logs to browers.",
   "private": true,
   "workspaces": [
     "packages/*"
