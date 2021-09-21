@@ -51,6 +51,10 @@ $ cat log_file.txt | wonlog-agent --stream-name='My First Log stream' --verbose
 
 # streaming from a growing log file to wonlog agent
 $ tail -F log_file.txt | wonlog-agent --stream-name='My First Log stream' --verbose
+
+# streaming from JSON to wonlog agent
+$ echo '{ "foo": "bar" }' | wonlog-agent --stream-name='My First Log stream' --verbose
+$ echo "{ foo: 'JSON5' }" | wonlog-agent --stream-name='My First Log stream' --verbose
 ```
 
 # JSON log format
@@ -72,6 +76,7 @@ $ tail -F log_file.txt | wonlog-agent --stream-name='My First Log stream' --verb
 ## `wonlog-server`
 
 ```bash
+$ wonlog-server --help
 Usage: index [options]
 
 Options:
@@ -84,9 +89,10 @@ Options:
   -h, --help            display help for command
 ```
 
-## `wonlog-webapp`
+## `wonlog-agent`
 
 ```
+$ wonlog-agent --help
 Usage: agent [options]
 
 Options:
