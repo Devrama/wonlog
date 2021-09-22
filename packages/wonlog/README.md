@@ -1,6 +1,6 @@
 # wonlog
 
-Stream your local logs to browers.
+Stream your local logs to browsers.
 
 This project is inspired by [rtail](https://github.com/kilianc/rtail).
 
