@@ -11,8 +11,8 @@ const DEFAULT_SERVER_HOST = '0.0.0.0';
 const DEFAULT_URL_HOST = '127.0.0.1';
 
 // The code below in the comment is in packages/wonlog-server/src/application.ts
-// .option('--webapp-host [host]', 'UDP Server host', '0.0.0.0') // This is used in /packages/wonlog in the release build. TODO. find a better way.
-// .option('--webapp-port [port]', 'UDP Server port', '7979'); // This is used in /packages/wonlog in the release build. TODO. find a better way.
+// .option('--webapp-host [host]', 'WebApp Server host', '0.0.0.0') // This is used in /packages/wonlog in the release build. TODO. find a better way.
+// .option('--webapp-port [port]', 'WebApp Server port', '7979'); // This is used in /packages/wonlog in the release build. TODO. find a better way.
 const options = argsParser(process.argv);
 
 const WEBAPP_BASE_PATH =

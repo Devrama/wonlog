@@ -80,8 +80,8 @@ $ wonlog-server --help
 Usage: index [options]
 
 Options:
-  --webapp-host [host]  UDP Server host (default: "0.0.0.0")
-  --webapp-port [port]  UDP Server port (default: "7979")
+  --webapp-host [host]  WebApp Server host (default: "0.0.0.0")
+  --webapp-port [port]  WebApp Server port (default: "7979")
   --http-host [host]    HTTP Server host (default: "0.0.0.0")
   --http-port [port]    HTTP Server port (default: "7978")
   --udp-host [host]     UDP Server host (default: "0.0.0.0")
