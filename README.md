@@ -102,3 +102,10 @@ Options:
   -v, --verbose [type]      Print logs (default: false)
   --help                    display help for command
 ```
+
+# Running `wonlog-server` with Docker
+
+```bash
+$ docker pull calmgracian/wonlog:latest
+$ docker run --name wonlog-server -d -p 7979:7979 -p 7978:7978 -p 7977:7977/udp calmgracian/wonlog:latest
+```
