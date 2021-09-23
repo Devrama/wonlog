@@ -57,27 +57,36 @@ process.stdin.pipe(split2()).on('data', function (str) {
       },
       data: {},
     };
-    let isJson = true;
+    let isJSON = true;
+    let isObject = false;
     let parsedLog: Record<string, unknown> | undefined = undefined;
 
     try {
       parsedLog = JSON5.parse(textLog);
+      isObject = typeof parsedLog === 'object' && !Array.isArray(parsedLog);
     } catch {
-      isJson = false;
-    }
-    if (isJson && typeof parsedLog?.timestamp === 'number') {
-      hydratedLog.wonlogMetadata.timestamp = parsedLog.timestamp;
-    } else if (isJson && typeof parsedLog?.timestamp === 'string') {
-      const parsedTime = parseISO(parsedLog.timestamp).getTime();
-      hydratedLog.wonlogMetadata.timestamp = isNaN(parsedTime)
-        ? Date.now()
-        : parsedTime;
+      isJSON = false;
     }
 
-    hydratedLog.data = parsedLog ?? { message: textLog };
+    if (isJSON && isObject) {
+      hydratedLog.data = parsedLog as Record<string, unknown>;
 
-    if (isJson && !hydratedLog.data.message) {
-      hydratedLog.data.message = `${textLog.substring(0, 200)}...`;
+      if (!hydratedLog.data.message) {
+        hydratedLog.data.message = `${textLog.substring(0, 200)}...`;
+      }
+
+      if (isJSON && typeof parsedLog?.timestamp === 'number') {
+        hydratedLog.wonlogMetadata.timestamp = parsedLog.timestamp;
+      } else if (isJSON && typeof parsedLog?.timestamp === 'string') {
+        const parsedTime = parseISO(parsedLog.timestamp).getTime();
+        hydratedLog.wonlogMetadata.timestamp = isNaN(parsedTime)
+          ? Date.now()
+          : parsedTime;
+      }
+    } else {
+      // Either text log or non-object JSON
+      hydratedLog.data = { message: textLog };
+      hydratedLog.wonlogMetadata.timestamp = Date.now();
     }
 
     const stringifiedData = JSON.stringify(hydratedLog);
