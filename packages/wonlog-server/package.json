@@ -1,6 +1,6 @@
 {
   "name": "wonlog-server",
-  "version": "0.0.4",
+  "version": "0.0.6",
   "description": "Stream your local logs to browers.",
   "main": "dist/index.js",
   "types": "./dist/types/index.d.ts",
