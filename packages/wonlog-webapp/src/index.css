@@ -31,3 +31,8 @@ code {
 .ReactVirtualized__Table__rowColumn[aria-colindex="2"] {
   flex-grow: 1 !important;
 }
+
+/* react-json-view */
+.react-json-view .variable-row .variable-value {
+  overflow-wrap: anywhere;
+}
