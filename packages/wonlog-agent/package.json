@@ -1,6 +1,6 @@
 {
   "name": "wonlog-agent",
-  "version": "0.0.4",
+  "version": "0.0.5-alpha.0",
   "description": "Stream your local logs to browers.",
   "main": "dist/index.js",
   "types": "./dist/types/index.d.ts",
