@@ -22,9 +22,11 @@
     "url": "git+https://github.com/Devrama/wonlog.git"
   },
   "keywords": [
+    "stream",
     "log",
     "logs",
     "logging",
+    "browser",
     "logio",
     "rtail",
     "monitoring",
