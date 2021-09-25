@@ -1,4 +1,4 @@
-import dgram from 'dgram';
+import axios, { AxiosError } from 'axios';
 import split2 from 'split2';
 import JSON5 from 'json5';
 import stripAnsi from 'strip-ansi';
@@ -9,8 +9,8 @@ import { AgentLog } from './types/wonlog_shared';
 
 const program = new Command();
 program
-  .option('-h, --udp-host [host]', 'UDP Server host', '127.0.0.1')
-  .option('-p, --udp-port [port]', 'UDP Server port', '7977')
+  .option('-h, --server-host [host]', 'HTTP Server host', '127.0.0.1')
+  .option('-p, --server-port [port]', 'HTTP Server port', '7978')
   .option('-s, --stream-name [name]', 'Stream name')
   .option('-v, --verbose [type]', 'Print logs', false);
 
@@ -23,16 +23,14 @@ if (_options.verbose) {
   process.stdin.pipe(process.stdout);
 }
 
-const JUNK_MAX_SIZE = 50000;
-let _isStdinClosed = false;
-let _countMessagesInQueue = 0;
-let _buffer: string[] = [];
-let _bufferSize: number = 0;
-let _isTimedOut: boolean = false;
-const _udpClient = dgram.createSocket('udp4');
-_udpClient.bind(function () {
-  _udpClient.setBroadcast(true);
+const axiosInstance = axios.create({
+  baseURL: `http://${_options.serverHost}:${_options.serverPort}/api/v1/`,
 });
+
+const JUNK_MAX_SIZE = 50000;
+let _buffer: string[] = [];
+let _bufferSize = 0;
+let _isTimedOut = false;
 
 const timer = setInterval((): void => {
   _isTimedOut = true;
@@ -93,21 +91,14 @@ process.stdin.pipe(split2()).on('data', function (str) {
     const stringifiedDataSize = stringifiedData.length;
 
     if (JUNK_MAX_SIZE < _bufferSize + stringifiedDataSize || _isTimedOut) {
-      const data = Buffer.from(`[${_buffer.join(',')}]`);
-      _countMessagesInQueue++;
-      _udpClient.send(
-        data,
-        0,
-        data.length,
-        _options.udpPort,
-        _options.udpPost,
-        function () {
-          _countMessagesInQueue--;
-          if (_isStdinClosed && _countMessagesInQueue === 0) {
-            _udpClient.close();
-          }
-        }
-      );
+      axiosInstance
+        .post('logs', {
+          data: `[${_buffer.join(',')}]`,
+          meta: { timestamp: Date.now() },
+        })
+        .catch((err: AxiosError) => {
+          console.error(err.message);
+        });
 
       _bufferSize = stringifiedDataSize;
       _buffer = [stringifiedData];
@@ -124,22 +115,16 @@ process.stdin.pipe(split2()).on('data', function (str) {
 });
 
 process.stdin.on('end', function () {
-  _isStdinClosed = true;
   clearInterval(timer);
 
   if (_buffer.length > 0) {
-    const data = Buffer.from(`[${_buffer.join(',')}]`);
-    _udpClient.send(
-      data,
-      0,
-      data.length,
-      _options.udpPort,
-      _options.udpPost,
-      function () {
-        _udpClient.close();
-      }
-    );
-  } else if (!_countMessagesInQueue) {
-    _udpClient.close();
+    axiosInstance
+      .post('logs', {
+        data: `[${_buffer.join(',')}]`,
+        meta: { timestamp: Date.now() },
+      })
+      .catch((err: AxiosError) => {
+        console.error(err.message);
+      });
   }
 });

@@ -40,6 +40,7 @@
     "@types/split2": "3.2.1"
   },
   "dependencies": {
+    "axios": "0.21.4",
     "commander": "8.2.0",
     "date-fns": "2.24.0",
     "json5": "2.2.0",

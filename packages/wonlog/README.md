@@ -10,7 +10,7 @@ This project is inspired by [rtail](https://github.com/kilianc/rtail).
 - search logs by a keyword
 - multiple log streams to a browser
 - sort logs
-- uses UDP & WebSocket
+- uses WebSocket
 
 ## Screenshots
 
@@ -77,15 +77,13 @@ $ echo "{ foo: 'JSON5' }" | wonlog-agent --stream-name='My First Log stream' --v
 
 ```bash
 $ wonlog-server --help
-Usage: index [options]
+Usage: wonlog-server [options]
 
 Options:
   --webapp-host [host]  WebApp Server host (default: "0.0.0.0")
   --webapp-port [port]  WebApp Server port (default: "7979")
-  --http-host [host]    HTTP Server host (default: "0.0.0.0")
-  --http-port [port]    HTTP Server port (default: "7978")
-  --udp-host [host]     UDP Server host (default: "0.0.0.0")
-  --udp-port [port]     UDP Server port (default: "7977")
+  --server-host [host]  HTTP Server host (default: "0.0.0.0")
+  --server-port [port]  HTTP Server port (default: "7978")
   -h, --help            display help for command
 ```
 
@@ -93,11 +91,11 @@ Options:
 
 ```
 $ wonlog-agent --help
-Usage: agent [options]
+Usage: wonlog-agent [options]
 
 Options:
-  -h, --udp-host [host]     UDP Server host (default: "127.0.0.1")
-  -p, --udp-port [port]     UDP Server port (default: "7977")
+  -h, --server-host [host]  HTTP Server host (default: "127.0.0.1")
+  -p, --server-port [port]  HTTP Server port (default: "7978")
   -s, --stream-name [name]  Stream name
   -v, --verbose [type]      Print logs (default: false)
   --help                    display help for command
@@ -107,6 +105,6 @@ Options:
 
 ```bash
 $ docker pull devrama/wonlog:latest
-$ docker run --name wonlog-server -d -p 7979:7979 -p 7978:7978 -p 7977:7977/udp devrama/wonlog:latest
+$ docker run --name wonlog-server -d -p 7979:7979 -p 7978:7978 devrama/wonlog:latest
 ```
 
