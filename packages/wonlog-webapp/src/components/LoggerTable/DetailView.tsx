@@ -16,6 +16,7 @@ const useStyles = makeStyles(() => ({
   },
   detailDrawerPaper: {
     width: 'calc(100% - 500px)',
+    overflow: 'none',
   },
 }));
 

@@ -31,12 +31,14 @@ const JUNK_MAX_SIZE = 50000;
 let _buffer: string[] = [];
 let _bufferSize = 0;
 let _isTimedOut = false;
+let _timeoutTimer: NodeJS.Timeout;
 
 const timer = setInterval((): void => {
   _isTimedOut = true;
 }, 300);
 
 process.stdin.pipe(split2()).on('data', function (str) {
+  clearTimeout(_timeoutTimer);
   try {
     let textLog = stripAnsi(str); // Strin ANSI escape codes
 
@@ -89,8 +91,7 @@ process.stdin.pipe(split2()).on('data', function (str) {
 
     const stringifiedData = JSON.stringify(hydratedLog);
     const stringifiedDataSize = stringifiedData.length;
-
-    if (JUNK_MAX_SIZE < _bufferSize + stringifiedDataSize || _isTimedOut) {
+    const sendLogs = (): void => {
       axiosInstance
         .post('logs', {
           data: `[${_buffer.join(',')}]`,
@@ -99,6 +100,10 @@ process.stdin.pipe(split2()).on('data', function (str) {
         .catch((err: AxiosError) => {
           console.error(err.message);
         });
+    };
+
+    if (JUNK_MAX_SIZE < _bufferSize + stringifiedDataSize || _isTimedOut) {
+      sendLogs();
 
       _bufferSize = stringifiedDataSize;
       _buffer = [stringifiedData];
@@ -107,6 +112,13 @@ process.stdin.pipe(split2()).on('data', function (str) {
       _bufferSize += stringifiedDataSize;
       _buffer.push(stringifiedData);
     }
+    // Otherwise, the last message may stay in the agent forever.
+    _timeoutTimer = setTimeout(() => {
+      sendLogs();
+      _bufferSize = 0;
+      _buffer = [];
+      _isTimedOut = false;
+    }, 5000);
   } catch (err) {
     // Never stop this process.
     console.error('wonlog-agent error, reason: ', err);
@@ -115,6 +127,7 @@ process.stdin.pipe(split2()).on('data', function (str) {
 });
 
 process.stdin.on('end', function () {
+  clearTimeout(_timeoutTimer);
   clearInterval(timer);
 
   if (_buffer.length > 0) {

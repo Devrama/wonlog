@@ -33,6 +33,9 @@ code {
 }
 
 /* react-json-view */
+.react-json-view {
+  overflow-y: auto;
+}
 .react-json-view .variable-row .variable-value {
   overflow-wrap: anywhere;
 }
