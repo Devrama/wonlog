@@ -39,7 +39,15 @@ const DetailView: React.FC<DetailViewProps> = ({ isOpen, log, onClose }) => {
       classes={{ paper: classes.detailDrawerPaper }}
     >
       <div style={{display: 'flex'}}>
-        <div style={{flexGrow: 1}} />
+        <div style={{
+          flexGrow: 1,
+          display: 'flex',
+          alignItems: 'center',
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          padding: '0 1em',
+        }} >{log?.data.message}</div>
         <div>
           <IconButton
             aria-label="Close"

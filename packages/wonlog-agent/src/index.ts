@@ -118,7 +118,7 @@ process.stdin.pipe(split2()).on('data', function (str) {
       _bufferSize = 0;
       _buffer = [];
       _isTimedOut = false;
-    }, 5000);
+    }, 1000);
   } catch (err) {
     // Never stop this process.
     console.error('wonlog-agent error, reason: ', err);
