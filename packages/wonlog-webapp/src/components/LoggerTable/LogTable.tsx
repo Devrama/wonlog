@@ -43,6 +43,8 @@ interface VirtualizedTableProps  {
   rowHeight?: number;
 }
 
+let currentSelectedSeqID: number | undefined = undefined;
+
 const useStyles = makeStyles((theme) => ({
   detailDrawer: {
     inset: 'unset !important',
@@ -91,6 +93,9 @@ const useStyles = makeStyles((theme) => ({
       top: 0,
     },
      */
+  },
+  selected: {
+    borderLeft: `5px solid ${theme.wonlog.palette.selected[theme.palette.type]}`,
   },
   noClick: {
     cursor: 'initial',
@@ -147,11 +152,13 @@ const VirtualizedTable:React.FC<VirtualizedTableProps> = ({
 
   const cellRenderer: TableCellRenderer = ({ rowData, cellData, columnIndex }) => {
     const isFirstColmun = columnIndex === 0;
-    const level = get(rowData, 'data.level');
+    const level = (get(rowData, 'data.level') ?? '').toLowerCase();
+
     return (
       <TableCell
         component="div"
         className={clsx(classes.tableCell, classes.flexContainer, {
+          [classes.selected]: isFirstColmun && currentSelectedSeqID === rowData.wonlogMetadata.seqID,
           [classes.noClick]: onRowClick == null,
           [classes.levelDefault]: isFirstColmun && !level,
           [classes.levelCritical]: isFirstColmun && (level == 'critical' || level == 'fatal'),
@@ -250,6 +257,7 @@ const LogTable: React.FC = () => {
         onRowClick={({ rowData }): void => {
           setIsDetailOpen(true);
           setCurrentDetailLog(rowData);
+          currentSelectedSeqID = rowData.wonlogMetadata.seqID;
         }}
         scrollTop={scrollTop}
         onScroll={({ scrollTop }): void => {
@@ -282,6 +290,7 @@ const LogTable: React.FC = () => {
         onClose={(): void => {
           setIsDetailOpen(false);
           setCurrentDetailLog(undefined);
+          currentSelectedSeqID = undefined;
         }}
       />
     </Paper>

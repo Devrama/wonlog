@@ -14,6 +14,7 @@ interface WonlogTheme {
     critical: DarkModeColor
     debug: DarkModeColor
     trace: DarkModeColor
+    selected: DarkModeColor
   },
 }
 
@@ -82,6 +83,10 @@ const DefaultTemplate:React.FC<DefaultTemplateProps> = ({ contentComponent }) =>
           trace: {
             dark: '#ddebf7',
             light: '#ddebf7',
+          },
+          selected: {
+            dark: '#e57373',
+            light: '#d32f2f',
           },
         },
       },

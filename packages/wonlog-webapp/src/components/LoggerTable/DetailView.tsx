@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useCallback } from 'react';
 import ReactJson from 'react-json-view';
 import { makeStyles } from '@material-ui/core/styles';
 import Drawer from '@material-ui/core/Drawer';
@@ -8,6 +8,7 @@ import {
   Darkmode,
 } from 'src/context/DarkmodeContext';
 import IconButton from '@material-ui/core/IconButton';
+import Tooltip from '@material-ui/core/Tooltip';
 import CloseIcon from '@material-ui/icons/Close';
 
 const useStyles = makeStyles(() => ({
@@ -16,6 +17,7 @@ const useStyles = makeStyles(() => ({
   },
   detailDrawerPaper: {
     width: 'calc(100% - 500px)',
+    maxWidth: 1000,
     overflow: 'none',
   },
 }));
@@ -30,6 +32,20 @@ const DetailView: React.FC<DetailViewProps> = ({ isOpen, log, onClose }) => {
   const classes = useStyles();
   const { darkmode } = useDarkmode();
 
+  const handleKeyPress = useCallback((event) => {
+    if(event.key === 'Escape') {
+      onClose();
+    }
+  }, []);
+
+  useEffect(() => {
+    document.addEventListener('keyup', handleKeyPress);
+
+    return (): void => {
+      document.removeEventListener('keyup', handleKeyPress);
+    };
+  }, [handleKeyPress]);
+
   return (
     <Drawer
       hideBackdrop={true}
@@ -38,7 +54,7 @@ const DetailView: React.FC<DetailViewProps> = ({ isOpen, log, onClose }) => {
       className={classes.detailDrawer}
       classes={{ paper: classes.detailDrawerPaper }}
     >
-      <div style={{display: 'flex'}}>
+      <div style={{display: 'flex', borderBottom: '1px solid #000000'}}>
         <div style={{
           flexGrow: 1,
           display: 'flex',
@@ -49,19 +65,28 @@ const DetailView: React.FC<DetailViewProps> = ({ isOpen, log, onClose }) => {
           padding: '0 1em',
         }} >{log?.data.message}</div>
         <div>
-          <IconButton
-            aria-label="Close"
-            onClick={(): void => {
-              onClose();
-            }}
-          >
-            <CloseIcon />
-          </IconButton>
+          <Tooltip title={<span>Shortcut - Esc</span>}>
+            <div>
+              <IconButton
+                aria-label="Close"
+                onClick={(): void => {
+                  onClose();
+                }}
+                title="shortcut - ESC"
+              >
+                <CloseIcon />
+              </IconButton>
+            </div>
+          </Tooltip>
         </div>
       </div>
       <ReactJson
-        // eslint-disable-next-line @typescript-eslint/ban-types
-        src={{ timestamp: log?.wonlogMetadata.datetime, ...log?.data } as object}
+        src={{
+          message: log?.data?.message,
+          level: log?.data?.level,
+          timestamp: log?.wonlogMetadata.datetime,
+            ...log?.data
+        }}
         name={false}
         theme={darkmode === Darkmode.DARK ? 'monokai' : 'rjv-default'}
         displayDataTypes={false}

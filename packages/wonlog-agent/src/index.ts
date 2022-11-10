@@ -35,7 +35,7 @@ let _timeoutTimer: NodeJS.Timeout;
 
 const timer = setInterval((): void => {
   _isTimedOut = true;
-}, 300);
+}, 200);
 
 process.stdin.pipe(split2()).on('data', function (str) {
   clearTimeout(_timeoutTimer);
@@ -118,7 +118,7 @@ process.stdin.pipe(split2()).on('data', function (str) {
       _bufferSize = 0;
       _buffer = [];
       _isTimedOut = false;
-    }, 1000);
+    }, 500);
   } catch (err) {
     // Never stop this process.
     console.error('wonlog-agent error, reason: ', err);
