@@ -92,7 +92,7 @@ const DetailView: React.FC<DetailViewProps> = ({ isOpen, log, onClose }) => {
         displayDataTypes={false}
         displayObjectSize={false}
         enableClipboard={false}
-        style={{ flexGrow: 1, padding: 20 }}
+        style={{ flexGrow: 1, padding: 20, fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif' }}
         quotesOnKeys={false}
       />
     </Drawer>
