@@ -1,6 +1,6 @@
 {
   "name": "wonlog",
-  "version": "0.1.5",
+  "version": "0.2.0",
   "description": "Stream your local logs to browers.",
   "files": [
     "dist"
@@ -37,8 +37,8 @@
   },
   "homepage": "https://github.com/Devrama/wonlog#readme",
   "dependencies": {
-    "wonlog-agent": "^0.1.4",
-    "wonlog-server": "^0.1.1",
+    "wonlog-agent": "^0.2.0",
+    "wonlog-server": "^0.2.0",
     "yargs-parser": "^20.2.9"
   },
   "gitHead": "0a0a4b6b794b3ce1114169629b811fd706e1059e"
