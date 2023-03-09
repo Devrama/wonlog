@@ -29,8 +29,8 @@ app.get('/', function (req, res) {
     .toString()
     .replace(
       '%%WONLOG_RELEASE_WEBSOCKET_URL%%',
-      `ws://${options['http-host'] || '127.0.0.1'}:${
-        options['http-port'] || 7978
+      `ws://${options['server-host'] || '127.0.0.1'}:${
+        options['server-port'] || 7978
       }`
     );
   res.set('Content-Type', 'text/html');
