@@ -80,7 +80,7 @@ $ wonlog-server --help
 Usage: wonlog-server [options]
 
 Options:
-  --webapp-host [host]  WebApp Server host (default: "0.0.0.0")
+  --webapp-host [host]  WebApp Server host (default: "127.0.0.1")
   --webapp-port [port]  WebApp Server port (default: "7979")
   --server-host [host]  HTTP Server host (default: "0.0.0.0")
   --server-port [port]  HTTP Server port (default: "7978")
